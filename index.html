@@ -1,1 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeatherGPT â€” Weather & Disaster Detection Assistant (SIH26068)</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --accent: #38bdf8;
+      --bg-gradient: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 50%, #7dd3fc 100%);
+      --surface: #ffffff;
+      --surface-glass: rgba(255, 255, 255, 0.96);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --user-bubble: #0284c7;
+      --assistant-bubble: #f8fafc;
+      --card-bg: #f0f9ff;
+      --card-border: #bae6fd;
+      --shadow-lg: 0 20px 35px -5px rgba(14, 165, 233, 0.25), 0 10px 15px -5px rgba(0, 0, 0, 0.08);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      color: var(--text-main);
+    }
+
+    .app-card {
+      width: 100%;
+      max-width: 880px;
+      height: 92vh;
+      max-height: 890px;
+      background: var(--surface-glass);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+    }
+
+    header {
+      padding: 16px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+    }
+
+    .brand-meta h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sih-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #bae6fd;
+      letter-spacing: 0.5px;
+    }
+
+    .disaster-badge-header {
+      font-size: 0.7rem;
+      font-weight: 700;
+      background: #fee2e2;
+      color: #b91c1c;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #fca5a5;
+      animation: pulse-red-badge 2s infinite;
+    }
+
+    @keyframes pulse-red-badge {
+      0% { opacity: 0.8; }
+      50% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0.8; }
+    }
+
+    .brand-meta p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .lang-selector-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border-color);
+    }
+
+    .lang-selector-wrap span {
+      font-size: 1rem;
+    }
+
+    .lang-select {
+      background: transparent;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .lang-select option {
+      background: #ffffff;
+      color: var(--text-main);
+    }
+
+    .toggle-lbl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-lbl input {
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .quick-chips-bar {
+      padding: 10px 24px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .quick-chips-bar span {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+    }
+
+    .chips-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chip-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .chip-btn:hover {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-color: #bae6fd;
+      transform: translateY(-1px);
+    }
+
+    .chip-btn.disaster-chip {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    .chip-btn.disaster-chip:hover {
+      background: #fee2e2;
+      border-color: #f87171;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      scroll-behavior: smooth;
+    }
+
+    .msg-row {
+      display: flex;
+      width: 100%;
+    }
+
+    .msg-row.user {
+      justify-content: flex-end;
+    }
+
+    .msg-row.assistant {
+      justify-content: flex-start;
+    }
+
+    .bubble {
+      max-width: 85%;
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .bubble.user {
+      background: var(--user-bubble);
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+    }
+
+    .bubble.assistant {
+      background: var(--assistant-bubble);
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .weather-card {
+      margin-top: 12px;
+      padding: 14px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      font-size: 0.85rem;
+    }
+
+    .weather-stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .weather-stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .weather-stat-val {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-top: 2px;
+    }
+
+    .disaster-alert-card {
+      margin-top: 14px;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .disaster-alert-card.danger {
+      background: #fef2f2;
+      border: 2px solid #ef4444;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
+    }
+
+    .disaster-alert-card.warning {
+      background: #fffbeb;
+      border: 2px solid #f59e0b;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.12);
+    }
+
+    .disaster-alert-card.safe {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      color: #166534;
+      font-weight: 600;
+    }
+
+    .disaster-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .disaster-header-icon {
+      font-size: 1.6rem;
+      animation: alert-shake 2.5s infinite;
+    }
+
+    @keyframes alert-shake {
+      0%, 100% { transform: rotate(0deg); }
+      10%, 30% { transform: rotate(-10deg); }
+      20%, 40% { transform: rotate(10deg); }
+      50% { transform: rotate(0deg); }
+    }
+
+    .disaster-title-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .disaster-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      display: inline-block;
+      width: fit-content;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+    }
+
+    .disaster-alert-card.danger .disaster-tag {
+      background: #ef4444;
+      color: #ffffff;
+    }
+
+    .disaster-alert-card.warning .disaster-tag {
+      background: #f59e0b;
+      color: #ffffff;
+    }
+
+    .disaster-title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .disaster-alert-card.danger .disaster-title {
+      color: #991b1b;
+    }
+
+    .disaster-alert-card.warning .disaster-title {
+      color: #92400e;
+    }
+
+    .disaster-details {
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #334155;
+    }
+
+    .disaster-advisory {
+      margin-top: 4px;
+      font-weight: 600;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .disaster-alert-card.danger .disaster-advisory {
+      color: #b91c1c;
+    }
+
+    .disaster-alert-card.warning .disaster-advisory {
+      color: #b45309;
+    }
+
+    .thinking-bubble {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 14px 20px;
+    }
+
+    .thinking-bubble span {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      animation: dot-bounce 1.4s infinite ease-in-out both;
+    }
+
+    .thinking-bubble span:nth-child(1) { animation-delay: -0.32s; }
+    .thinking-bubble span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes dot-bounce {
+      0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    footer {
+      padding: 16px 24px;
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .input-form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      border: 1.5px solid var(--border-color);
+      border-radius: 999px;
+      outline: none;
+      background: #f8fafc;
+      color: var(--text-main);
+      transition: all 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+    }
+
+    .btn-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-mic {
+      background: #f1f5f9;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-mic:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+
+    .btn-mic.recording {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #dc2626;
+      animation: pulse-red 1.5s infinite;
+    }
+
+    @keyframes pulse-red {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+      70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .btn-send {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+    }
+
+    .btn-send:hover:not(:disabled) {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-send:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-circle svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .status-line {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      padding-left: 14px;
+      min-height: 16px;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 0; }
+      .app-card {
+        height: 100vh;
+        max-height: none;
+        border-radius: 0;
+      }
+      header { padding: 12px 16px; }
+      .chat-messages { padding: 16px; }
+      .bubble { max-width: 92%; }
+      footer { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-card">
+    <header>
+      <div class="brand-group">
+        <div class="brand-avatar">â›…</div>
+        <div class="brand-meta">
+          <h1>WeatherGPT <span class="sih-badge">SIH26068</span> <span class="disaster-badge-header">ðŸš¨ Disaster Radar</span></h1>
+          <p id="headerTagline">Conversational Weather & Extreme Disaster Early Warning</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <div class="lang-selector-wrap" title="Select your preferred language">
+          <span>ðŸŒ</span>
+          <select id="langSelect" class="lang-select">
+            <option value="te" selected>à°¤à±†à°²à±à°—à± (Telugu)</option>
+            <option value="en">English</option>
+            <option value="hi">à¤¹à¤¿à¤¨à¥à¤¦à¥€ (Hindi)</option>
+            <option value="kn">à²•à²¨à³à²¨à²¡ (Kannada)</option>
+          </select>
+        </div>
+        <label class="toggle-lbl" title="Read responses aloud">
+          <input type="checkbox" id="ttsCheckbox" checked />
+          <span id="ttsLabelText">à°šà°¦à°¿à°µà°¿ à°µà°¿à°¨à°¿à°ªà°¿à°‚à°šà±</span>
+        </label>
+      </div>
+    </header>
+
+    <div class="quick-chips-bar">
+      <span id="quickCheckLabel">à°¤à±à°µà°°à°¿à°¤ à°¤à°¨à°¿à°–à±€:</span>
+      <div class="chips-container" id="chipsContainer"></div>
+    </div>
+
+    <main class="chat-messages" id="chatContainer">
+      <div class="msg-row assistant">
+        <div class="bubble assistant" id="welcomeMessageBubble"></div>
+      </div>
+    </main>
+
+    <footer>
+      <form class="input-form" id="chatForm">
+        <input
+          type="text"
+          id="queryInput"
+          class="chat-input"
+          placeholder="à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°²à±‡à°¦à°¾ à°µà°¿à°ªà°¤à±à°¤à±à°² à°®à±à°ªà±à°ªà± à°—à±à°°à°¿à°‚à°šà°¿ à°…à°¡à°—à°‚à°¡à°¿..."
+          autocomplete="off"
+          required
+        />
+        <button
+          type="button"
+          id="micButton"
+          class="btn-circle btn-mic"
+          title="Click to speak (Voice input)"
+          aria-label="Microphone"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+          </svg>
+        </button>
+        <button
+          type="submit"
+          id="sendButton"
+          class="btn-circle btn-send"
+          title="Send message"
+          aria-label="Send"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </form>
+      <div class="status-line" id="statusMsg"></div>
+    </footer>
+  </div>
+
+  <script>
+    const I18N = {
+      te: {
+        code: 'te-IN',
+        tagline: 'à°µà°¾à°¤à°¾à°µà°°à°£ à°µà°¿à°µà°°à°¾à°²à± à°®à°°à°¿à°¯à± à°ªà±à°°à°•à±ƒà°¤à°¿ à°µà°¿à°ªà°¤à±à°¤à± à°®à±à°‚à°¦à°¸à±à°¤à± à°¹à±†à°šà±à°šà°°à°¿à°•à°²à±',
+        readAloud: 'à°šà°¦à°¿à°µà°¿ à°µà°¿à°¨à°¿à°ªà°¿à°‚à°šà±',
+        quickCheck: 'à°¤à±à°µà°°à°¿à°¤ à°¤à°¨à°¿à°–à±€:',
+        currentLocation: 'ðŸ“ à°¨à°¾ à°ªà±à°°à°¸à±à°¤à±à°¤ à°ªà±à°°à°¾à°‚à°¤à°‚',
+        disasterRadarChip: 'ðŸš¨ à°µà°¿à°ªà°¤à±à°¤à± à°¤à°¨à°¿à°–à±€ (Disaster Alert)',
+        cities: [
+          { label: 'à°¹à±ˆà°¦à°°à°¾à°¬à°¾à°¦à±', query: 'à°¹à±ˆà°¦à°°à°¾à°¬à°¾à°¦à±â€Œà°²à±‹ à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°®à°°à°¿à°¯à± à°µà°¿à°ªà°¤à±à°¤à±à°² à°®à±à°ªà±à°ªà± à°Žà°²à°¾ à°‰à°‚à°¦à°¿?' },
+          { label: 'à°µà°¿à°¶à°¾à°–à°ªà°Ÿà±à°¨à°‚', query: 'à°µà°¿à°¶à°¾à°–à°ªà°Ÿà±à°¨à°‚à°²à±‹ à°¤à±à°«à°¾à°¨à± à°²à±‡à°¦à°¾ à°µà°°à±à°·à°‚ à°®à±à°ªà±à°ªà± à°‰à°‚à°¦à°¾?' },
+          { label: 'à°µà°¿à°œà°¯à°µà°¾à°¡', query: 'à°µà°¿à°œà°¯à°µà°¾à°¡à°²à±‹ à°µà°°à°¦ à°²à±‡à°¦à°¾ à°µà°°à±à°·à°‚ à°¹à±†à°šà±à°šà°°à°¿à°•à°²à± à°à°®à±ˆà°¨à°¾ à°‰à°¨à±à°¨à°¾à°¯à°¾?' },
+          { label: 'à°¤à°¿à°°à±à°ªà°¤à°¿', query: 'à°¤à°¿à°°à±à°ªà°¤à°¿à°²à±‹ à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°šà±†à°ªà±à°ªà°‚à°¡à°¿' },
+          { label: 'à°šà±†à°¨à±à°¨à±ˆ', query: 'à°šà±†à°¨à±à°¨à±ˆà°²à±‹ à°¤à±à°«à°¾à°¨à± à°²à±‡à°¦à°¾ à°…à°§à°¿à°• à°µà°°à±à°·à°¾à°²à± à°‰à°¨à±à°¨à°¾à°¯à°¾?' }
+        ],
+        welcomeHtml: `à°¨à°®à°¸à±à°•à°¾à°°à°‚! à°¨à±‡à°¨à± <strong>WeatherGPT</strong>, à°¸à±à°®à°¾à°°à±à°Ÿà± à°‡à°‚à°¡à°¿à°¯à°¾ à°¹à±à°¯à°¾à°•à°¥à°¾à°¨à± (SIH26068) à°•à±‹à°¸à°‚ à°°à±‚à°ªà±Šà°‚à°¦à°¿à°‚à°šà°¿à°¨ à°®à±€ <strong>à°µà°¾à°¤à°¾à°µà°°à°£ & à°ªà±à°°à°•à±ƒà°¤à°¿ à°µà°¿à°ªà°¤à±à°¤à±à°² à°®à±à°‚à°¦à°¸à±à°¤à± à°¸à°¹à°¾à°¯à°•à±à°¡à°¿à°¨à°¿</strong>.<br><br>à°à°¦à±ˆà°¨à°¾ à°ªà±à°°à°¦à±‡à°¶à°‚ à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°—à±à°°à°¿à°‚à°šà°¿ à°…à°¡à°—à°‚à°¡à°¿ â€” à°‰à°¦à°¾à°¹à°°à°£à°•à± <em>"à°¹à±ˆà°¦à°°à°¾à°¬à°¾à°¦à±â€Œà°²à±‹ à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°Žà°²à°¾ à°‰à°‚à°¦à°¿?"</em> à°²à±‡à°¦à°¾ <em>"à°µà°¿à°¶à°¾à°–à°ªà°Ÿà±à°¨à°‚à°²à±‹ à°¤à±à°«à°¾à°¨à± à°²à±‡à°¦à°¾ à°µà°°à°¦ à°®à±à°ªà±à°ªà± à°‰à°‚à°¦à°¾?"</em> à°…à°¨à°¿ à°…à°¡à°—à°‚à°¡à°¿! à°¨à±‡à°¨à± à°¤à°•à±à°·à°£ à°µà°¿à°ªà°¤à±à°¤à± à°µà°¿à°¶à±à°²à±‡à°·à°£à°¨à± à°•à±‚à°¡à°¾ à°…à°‚à°¦à°¿à°¸à±à°¤à°¾à°¨à±.`,
+        welcomeSpeech: 'à°¨à°®à°¸à±à°•à°¾à°°à°‚! à°¨à±‡à°¨à± à°µà±†à°¦à°°à± à°œà±€à°ªà±€à°Ÿà±€. à°µà°¾à°¤à°¾à°µà°°à°£ à°µà°¿à°µà°°à°¾à°²à± à°²à±‡à°¦à°¾ à°µà°¿à°ªà°¤à±à°¤à±à°² à°¹à±†à°šà±à°šà°°à°¿à°•à°² à°•à±‹à°¸à°‚ à°à°¦à±ˆà°¨à°¾ à°¨à°—à°°à°‚ à°ªà±‡à°°à± à°šà±†à°ªà±à°ªà°‚à°¡à°¿.',
+        placeholder: 'à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°²à±‡à°¦à°¾ à°¤à±à°«à°¾à°¨à±/à°µà°°à°¦à°² à°®à±à°ªà±à°ªà± à°—à±à°°à°¿à°‚à°šà°¿ à°…à°¡à°—à°‚à°¡à°¿ (à°‰à°¦à°¾: à°¹à±ˆà°¦à°°à°¾à°¬à°¾à°¦à±â€Œà°²à±‹ à°µà°¾à°¤à°¾à°µà°°à°£à°‚)...',
+        micListening: 'ðŸŽ¤ à°µà°¿à°‚à°Ÿà±à°¨à±à°¨à°¾à°¨à±... à°¦à°¯à°šà±‡à°¸à°¿ à°‡à°ªà±à°ªà±à°¡à± à°¤à±†à°²à±à°—à±à°²à±‹ à°®à°¾à°Ÿà±à°²à°¾à°¡à°‚à°¡à°¿.',
+        micError: 'à°µà°¾à°¯à°¿à°¸à± à°—à±à°°à±à°¤à°¿à°‚à°ªà± à°²à±‹à°ªà°‚:',
+        checkingWeather: 'WeatherGPT à°¤à°¾à°œà°¾ à°µà°¾à°¤à°¾à°µà°°à°£à°‚ & à°µà°¿à°ªà°¤à±à°¤à± à°µà°¿à°µà°°à°¾à°²à°¨à± à°¤à°¨à°¿à°–à±€ à°šà±‡à°¸à±à°¤à±‹à°‚à°¦à°¿...',
+        askLocationHtml: `à°µà°¾à°¤à°¾à°µà°°à°£à°‚ & à°µà°¿à°ªà°¤à±à°¤à± à°µà°¿à°µà°°à°¾à°²à°¨à± à°…à°‚à°¦à°¿à°‚à°šà°¡à°¾à°¨à°¿à°•à°¿ à°¨à±‡à°¨à± à°¸à°¿à°¦à±à°§à°‚! à°¦à°¯à°šà±‡à°¸à°¿ à°®à±€à°°à± à° à°¨à°—à°°à°‚ à°²à±‡à°¦à°¾ à°ªà±à°°à°¾à°‚à°¤à°‚ à°µà°¿à°µà°°à°¾à°²à± à°¤à±†à°²à±à°¸à±à°•à±‹à°µà°¾à°²à°¨à±à°•à±à°‚à°Ÿà±à°¨à±à°¨à°¾à°°à±‹ à°šà±†à°ªà±à°ªà°‚à°¡à°¿? (à°‰à°¦à°¾à°¹à°°à°£à°•à±: <em>"à°¹à±ˆà°¦à°°à°¾à°¬à°¾à°¦à±â€Œà°²à±‹ à°µà°¾à°¤à°¾à°µà°°à°£à°‚"</em> à°²à±‡à°¦à°¾ <em>"à°µà°¿à°œà°¯à°µà°¾à°¡"</em>)`,
+        askLocationSpeech: 'à°¦à°¯à°šà±‡à°¸à°¿ à°®à±€à°°à± à° à°Šà°°à± à°²à±‡à°¦à°¾ à°ªà±à°°à°¾à°‚à°¤à°‚ à°µà°¿à°µà°°à°¾à°²à± à°¤à±†à°²à±à°¸à±à°•à±‹à°µà°¾à°²à°¨à±à°•à±à°‚à°Ÿà±à°¨à±à°¨à°¾à°°à±‹ à°šà±†à°ªà±à°ªà°‚à°¡à°¿?',
+        notFoundHtml: (loc) => `à°¨à°¾à°•à± <em>"${loc}"</em> à°µà°¿à°µà°°à°¾à°²à± à°²à°­à°¿à°‚à°šà°²à±‡à°¦à±. à°¦à°¯à°šà±‡à°¸à°¿ à°ªà±‡à°°à± à°¸à°°à°¿à°šà±‚à°¸à±à°•à±‹à°‚à°¡à°¿ à°²à±‡à°¦à°¾ à°¸à°®à±€à°ª à°¨à°—à°° à°µà°¿à°µà°°à°¾à°²à± à°ªà±‡à°°à±à°•à±Šà°¨à°‚à°¡à°¿.`,
+        notFoundSpeech: (loc) => `à°¨à°¾à°•à± "${loc}" à°µà°¿à°µà°°à°¾à°²à± à°²à°­à°¿à°‚à°šà°²à±‡à°¦à±. à°¦à°¯à°šà±‡à°¸à°¿ à°ªà±‡à°°à± à°¸à°°à°¿à°šà±‚à°¸à±à°•à±‹à°‚à°¡à°¿.`,
+        greetingHtml: `à°¨à°®à°¸à±à°•à°¾à°°à°‚! à°¨à±‡à°¨à± <strong>WeatherGPT</strong>, à°ªà±à°°à°•à±ƒà°¤à°¿ à°µà°¿à°ªà°¤à±à°¤à±à°² à°¹à±†à°šà±à°šà°°à°¿à°• à°®à°°à°¿à°¯à± à°µà°¾à°¤à°¾à°µà°°à°£ à°¸à°¹à°¾à°¯à°•à±à°¡à°¿à°¨à°¿. à°¤à±à°«à°¾à°¨à±à°²à±, à°µà°°à°¦à°²à±, à°ªà°¿à°¡à±à°—à±à°²à± à°®à°°à°¿à°¯à± à°Žà°‚à°¡ à°¤à±€à°µà±à°°à°¤à°¨à± à°¨à±‡à°¨à± à°—à±à°°à±à°¤à°¿à°¸à±à°¤à°¾à°¨à±. à°®à±€à°°à± à° à°ªà±à°°à°¾à°‚à°¤à°‚ à°—à±à°°à°¿à°‚à°šà°¿ à°¤à±†à°²à±à°¸à±à°•à±‹à°µà°¾à°²à°¨à±à°•à±à°‚à°Ÿà±à°¨à±à°¨à°¾à°°à±?`,
+        greetingSpeech: 'à°¨à°®à°¸à±à°•à°¾à°°à°‚! à°¨à±‡à°¨à± WeatherGPT. à°®à±€à°°à± à° à°ªà±à°°à°¾à°‚à°¤à°‚ à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°²à±‡à°¦à°¾ à°µà°¿à°ªà°¤à±à°¤à±à°² à°—à±à°°à°¿à°‚à°šà°¿ à°¤à±†à°²à±à°¸à±à°•à±‹à°µà°¾à°²à°¨à±à°•à±à°‚à°Ÿà±à°¨à±à°¨à°¾à°°à±?',
+        cardLabels: {
+          condition: 'à°µà°¾à°¤à°¾à°µà°°à°£ à°¸à±à°¥à°¿à°¤à°¿',
+          temperature: 'à°‰à°·à±à°£à±‹à°—à±à°°à°¤',
+          feelsLike: 'à°…à°¨à°¿à°ªà°¿à°‚à°šà±‡ à°‰à°·à±à°£à±‹à°—à±à°°à°¤',
+          windSpeed: 'à°—à°¾à°²à°¿ à°µà±‡à°—à°‚',
+          humidity: 'à°¤à±‡à°® à°¶à°¾à°¤à°‚',
+          highLow: 'à°—à°°à°¿à°·à±à°Ÿ / à°•à°¨à°¿à°·à±à°Ÿ'
+        }
+      },
+      en: {
+        code: 'en-IN',
+        tagline: 'Conversational Weather & Extreme Disaster Early Warning',
+        readAloud: 'Read aloud',
+        quickCheck: 'Quick Check:',
+        currentLocation: 'ðŸ“ Current Location',
+        disasterRadarChip: 'ðŸš¨ Disaster Radar Check',
+        cities: [
+          { label: 'New Delhi', query: 'Is there any severe weather or disaster in New Delhi?' },
+          { label: 'Mumbai', query: 'How is the weather and flood risk in Mumbai?' },
+          { label: 'Visakhapatnam', query: 'Any cyclone or storm alert in Visakhapatnam?' },
+          { label: 'Bengaluru', query: 'Current weather and rain forecast for Bengaluru?' },
+          { label: 'Hyderabad', query: 'Weather and heat alert in Hyderabad right now?' }
+        ],
+        welcomeHtml: `Hello! I am <strong>WeatherGPT</strong>, your AI assistant for Smart India Hackathon (SIH26068) equipped with <strong>Real-time Extreme Weather & Disaster Detection</strong>.<br><br>Ask me about any city's weather or disaster alerts â€” try <em>"Is there any cyclone alert in Visakhapatnam?"</em> or <em>"What's the weather in Mumbai?"</em>`,
+        welcomeSpeech: 'Hello! I am WeatherGPT. Which city would you like to check for weather or disaster alerts?',
+        placeholder: 'Ask about weather, cyclone, flood, heatwave alerts anywhere...',
+        micListening: 'ðŸŽ¤ Listening... Please speak your question now.',
+        micError: 'Speech recognition error:',
+        checkingWeather: 'WeatherGPT is scanning real-time forecast and disaster indicators...',
+        askLocationHtml: `I'd love to help you! Please specify which city or location you're inquiring about (e.g., <em>"Weather in New Delhi"</em> or <em>"Any cyclone in Vizag?"</em>).`,
+        askLocationSpeech: 'Which city or location would you like to check?',
+        notFoundHtml: (loc) => `I couldn't locate <em>"${loc}"</em>. Please check the spelling or specify a nearby major city.`,
+        notFoundSpeech: (loc) => `I couldn't locate "${loc}". Please check the spelling.`,
+        greetingHtml: `Hello! I am <strong>WeatherGPT</strong>. I monitor real-time weather, cyclones, severe storms, flood risks, and extreme heatwaves. Which location would you like to check?`,
+        greetingSpeech: 'Hello! I am WeatherGPT. Which location would you like to check?',
+        cardLabels: {
+          condition: 'Condition',
+          temperature: 'Temperature',
+          feelsLike: 'Feels Like',
+          windSpeed: 'Wind Speed',
+          humidity: 'Humidity',
+          highLow: 'High / Low'
+        }
+      },
+      hi: {
+        code: 'hi-IN',
+        tagline: 'à¤®à¥Œà¤¸à¤® à¤ªà¥‚à¤°à¥à¤µà¤¾à¤¨à¥à¤®à¤¾à¤¨ à¤à¤µà¤‚ à¤ªà¥à¤°à¤¾à¤•à¥ƒà¤¤à¤¿à¤• à¤†à¤ªà¤¦à¤¾ à¤ªà¥‚à¤°à¥à¤µ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€ à¤ªà¥à¤°à¤£à¤¾à¤²à¥€',
+        readAloud: 'à¤¬à¥‹à¤²à¤•à¤° à¤¸à¥à¤¨à¤¾à¤à¤‚',
+        quickCheck: 'à¤¤à¥à¤µà¤°à¤¿à¤¤ à¤œà¤¾à¤‚à¤š:',
+        currentLocation: 'ðŸ“ à¤®à¥‡à¤°à¤¾ à¤µà¤°à¥à¤¤à¤®à¤¾à¤¨ à¤¸à¥à¤¥à¤¾à¤¨',
+        disasterRadarChip: 'ðŸš¨ à¤†à¤ªà¤¦à¤¾ à¤°à¤¡à¤¾à¤° à¤œà¤¾à¤‚à¤š',
+        cities: [
+          { label: 'à¤¨à¤ˆ à¤¦à¤¿à¤²à¥à¤²à¥€', query: 'à¤¨à¤ˆ à¤¦à¤¿à¤²à¥à¤²à¥€ à¤®à¥‡à¤‚ à¤®à¥Œà¤¸à¤® à¤”à¤° à¤†à¤ªà¤¦à¤¾ à¤•à¤¾ à¤–à¤¤à¤°à¤¾ à¤•à¥ˆà¤¸à¤¾ à¤¹à¥ˆ?' },
+          { label: 'à¤®à¥à¤‚à¤¬à¤ˆ', query: 'à¤®à¥à¤‚à¤¬à¤ˆ à¤®à¥‡à¤‚ à¤­à¤¾à¤°à¥€ à¤¬à¤¾à¤°à¤¿à¤¶ à¤¯à¤¾ à¤¬à¤¾à¤¢à¤¼ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€ à¤¹à¥ˆ à¤•à¥à¤¯à¤¾?' },
+          { label: 'à¤¬à¥‡à¤‚à¤—à¤²à¥à¤°à¥', query: 'à¤¬à¥‡à¤‚à¤—à¤²à¥à¤°à¥ à¤®à¥‡à¤‚ à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ à¤”à¤° à¤®à¥Œà¤¸à¤®' },
+          { label: 'à¤¹à¥ˆà¤¦à¤°à¤¾à¤¬à¤¾à¤¦', query: 'à¤¹à¥ˆà¤¦à¤°à¤¾à¤¬à¤¾à¤¦ à¤®à¥‡à¤‚ à¤†à¤œ à¤•à¤¾ à¤®à¥Œà¤¸à¤®' },
+          { label: 'à¤œà¤¯à¤ªà¥à¤°', query: 'à¤œà¤¯à¤ªà¥à¤° à¤®à¥‡à¤‚ à¤²à¥‚ à¤¯à¤¾ à¤­à¥€à¤·à¤£ à¤—à¤°à¥à¤®à¥€ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€ à¤¹à¥ˆ à¤•à¥à¤¯à¤¾?' }
+        ],
+        welcomeHtml: `à¤¨à¤®à¤¸à¥à¤¤à¥‡! à¤®à¥ˆà¤‚ <strong>WeatherGPT</strong> à¤¹à¥‚à¤, à¤¸à¥à¤®à¤¾à¤°à¥à¤Ÿ à¤‡à¤‚à¤¡à¤¿à¤¯à¤¾ à¤¹à¥ˆà¤•à¤¥à¥‰à¤¨ (SIH26068) à¤•à¥‡ à¤²à¤¿à¤ à¤†à¤ªà¤•à¤¾ <strong>à¤®à¥Œà¤¸à¤® à¤µ à¤†à¤ªà¤¦à¤¾ à¤ªà¤¹à¤šà¤¾à¤¨ à¤¸à¤¹à¤¾à¤¯à¤•</strong>à¥¤<br><br>à¤®à¥à¤à¤¸à¥‡ à¤•à¤¿à¤¸à¥€ à¤­à¥€ à¤¶à¤¹à¤° à¤•à¥‡ à¤®à¥Œà¤¸à¤®, à¤­à¤¾à¤°à¥€ à¤¬à¤¾à¤°à¤¿à¤¶, à¤šà¤•à¥à¤°à¤µà¤¾à¤¤ à¤¯à¤¾ à¤²à¥‚ à¤•à¥‡ à¤–à¤¤à¤°à¥‡ à¤•à¥‡ à¤¬à¤¾à¤°à¥‡ à¤®à¥‡à¤‚ à¤ªà¥‚à¤›à¥‡à¤‚ â€” à¤œà¥ˆà¤¸à¥‡ <em>"à¤®à¥à¤‚à¤¬à¤ˆ à¤®à¥‡à¤‚ à¤­à¤¾à¤°à¥€ à¤¬à¤¾à¤°à¤¿à¤¶ à¤•à¤¾ à¤–à¤¤à¤°à¤¾ à¤¹à¥ˆ à¤•à¥à¤¯à¤¾?"</em> à¤¯à¤¾ à¤Šà¤ªà¤° à¤¦à¤¿à¤ à¤—à¤ à¤¬à¤Ÿà¤¨à¥‹à¤‚ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚!`,
+        welcomeSpeech: 'à¤¨à¤®à¤¸à¥à¤¤à¥‡! à¤®à¥ˆà¤‚ WeatherGPT à¤¹à¥‚à¤à¥¤ à¤†à¤ª à¤†à¤œ à¤•à¤¿à¤¸ à¤¶à¤¹à¤° à¤•à¤¾ à¤®à¥Œà¤¸à¤® à¤¯à¤¾ à¤†à¤ªà¤¦à¤¾ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€ à¤œà¤¾à¤‚à¤šà¤¨à¤¾ à¤šà¤¾à¤¹à¤¤à¥‡ à¤¹à¥ˆà¤‚?',
+        placeholder: 'à¤®à¥Œà¤¸à¤®, à¤šà¤•à¥à¤°à¤µà¤¾à¤¤ à¤¯à¤¾ à¤¬à¤¾à¤¢à¤¼ à¤•à¥‡ à¤–à¤¤à¤°à¥‡ à¤•à¥‡ à¤¬à¤¾à¤°à¥‡ à¤®à¥‡à¤‚ à¤ªà¥‚à¤›à¥‡à¤‚...',
+        micListening: 'ðŸŽ¤ à¤¸à¥à¤¨ à¤°à¤¹à¤¾ à¤¹à¥‚à¤... à¤•à¥ƒà¤ªà¤¯à¤¾ à¤…à¤ªà¤¨à¤¾ à¤¸à¤µà¤¾à¤² à¤¬à¥‹à¤²à¥‡à¤‚à¥¤',
+        micError: 'à¤†à¤µà¤¾à¤œà¤¼ à¤ªà¤¹à¤šà¤¾à¤¨à¤¨à¥‡ à¤®à¥‡à¤‚ à¤¤à¥à¤°à¥à¤Ÿà¤¿:',
+        checkingWeather: 'WeatherGPT à¤®à¥Œà¤¸à¤® à¤”à¤° à¤†à¤ªà¤¦à¤¾ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€ à¤•à¥€ à¤œà¤¾à¤‚à¤š à¤•à¤° à¤°à¤¹à¤¾ à¤¹à¥ˆ...',
+        askLocationHtml: `à¤•à¥ƒà¤ªà¤¯à¤¾ à¤¬à¤¤à¤¾à¤à¤‚ à¤•à¤¿ à¤†à¤ª à¤•à¤¿à¤¸ à¤¶à¤¹à¤° à¤¯à¤¾ à¤¸à¥à¤¥à¤¾à¤¨ à¤•à¤¾ à¤®à¥Œà¤¸à¤® à¤µ à¤†à¤ªà¤¦à¤¾ à¤µà¤¿à¤µà¤°à¤£ à¤œà¤¾à¤¨à¤¨à¤¾ à¤šà¤¾à¤¹à¤¤à¥‡ à¤¹à¥ˆà¤‚? (à¤œà¥ˆà¤¸à¥‡: <em>"à¤¦à¤¿à¤²à¥à¤²à¥€ à¤•à¤¾ à¤®à¥Œà¤¸à¤®"</em> à¤¯à¤¾ <em>"à¤®à¥à¤‚à¤¬à¤ˆ"</em>)`,
+        askLocationSpeech: 'à¤•à¥ƒà¤ªà¤¯à¤¾ à¤¬à¤¤à¤¾à¤‡à¤ à¤†à¤ª à¤•à¤¿à¤¸ à¤¶à¤¹à¤° à¤•à¥€ à¤œà¤¾à¤¨à¤•à¤¾à¤°à¥€ à¤šà¤¾à¤¹à¤¤à¥‡ à¤¹à¥ˆà¤‚?',
+        notFoundHtml: (loc) => `à¤®à¥à¤à¥‡ <em>"${loc}"</em> à¤•à¥€ à¤œà¤¾à¤¨à¤•à¤¾à¤°à¥€ à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤² à¤¸à¤•à¥€à¥¤ à¤•à¥ƒà¤ªà¤¯à¤¾ à¤¶à¤¹à¤° à¤•à¤¾ à¤¨à¤¾à¤® à¤¦à¥‹à¤¬à¤¾à¤°à¤¾ à¤œà¤¾à¤‚à¤šà¥‡à¤‚à¥¤`,
+        notFoundSpeech: (loc) => `à¤®à¥à¤à¥‡ "${loc}" à¤•à¥€ à¤œà¤¾à¤¨à¤•à¤¾à¤°à¥€ à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¥€à¥¤`,
+        greetingHtml: `à¤¨à¤®à¤¸à¥à¤¤à¥‡! à¤®à¥ˆà¤‚ <strong>WeatherGPT</strong> à¤¹à¥‚à¤à¥¤ à¤®à¥ˆà¤‚ à¤µà¤¾à¤¸à¥à¤¤à¤µà¤¿à¤• à¤¸à¤®à¤¯ à¤®à¥‡à¤‚ à¤®à¥Œà¤¸à¤®, à¤†à¤‚à¤§à¥€-à¤¤à¥‚à¤«à¤¾à¤¨, à¤­à¤¾à¤°à¥€ à¤¬à¤¾à¤°à¤¿à¤¶ à¤”à¤° à¤²à¥‚ à¤œà¥ˆà¤¸à¥€ à¤†à¤ªà¤¦à¤¾à¤“à¤‚ à¤•à¥€ à¤¨à¤¿à¤—à¤°à¤¾à¤¨à¥€ à¤•à¤°à¤¤à¤¾ à¤¹à¥‚à¤à¥¤ à¤†à¤ª à¤•à¤¹à¤¾à¤ à¤•à¤¾ à¤®à¥Œà¤¸à¤® à¤œà¤¾à¤¨à¤¨à¤¾ à¤šà¤¾à¤¹à¤¤à¥‡ à¤¹à¥ˆà¤‚?`,
+        greetingSpeech: 'à¤¨à¤®à¤¸à¥à¤¤à¥‡! à¤†à¤ª à¤•à¤¿à¤¸ à¤¸à¥à¤¥à¤¾à¤¨ à¤•à¥€ à¤œà¤¾à¤¨à¤•à¤¾à¤°à¥€ à¤šà¤¾à¤¹à¤¤à¥‡ à¤¹à¥ˆà¤‚?',
+        cardLabels: {
+          condition: 'à¤®à¥Œà¤¸à¤® à¤¸à¥à¤¥à¤¿à¤¤à¤¿',
+          temperature: 'à¤¤à¤¾à¤ªà¤®à¤¾à¤¨',
+          feelsLike: 'à¤…à¤¨à¥à¤­à¥‚à¤¤à¤¿ à¤¤à¤¾à¤ªà¤®à¤¾à¤¨',
+          windSpeed: 'à¤¹à¤µà¤¾ à¤•à¥€ à¤—à¤¤à¤¿',
+          humidity: 'à¤¨à¤®à¥€ (à¤†à¤°à¥à¤¦à¥à¤°à¤¤à¤¾)',
+          highLow: 'à¤…à¤§à¤¿à¤•à¤¤à¤® / à¤¨à¥à¤¯à¥‚à¤¨à¤¤à¤®'
+        }
+      },
+      kn: {
+        code: 'kn-IN',
+        tagline: 'à²¹à²µà²¾à²®à²¾à²¨ à²®à³à²¨à³à²¸à³‚à²šà²¨à³† à²®à²¤à³à²¤à³ à²¨à³ˆà²¸à²°à³à²—à²¿à²• à²µà²¿à²•à³‹à²ª à²®à³à²¨à³à²¨à³†à²šà³à²šà²°à²¿à²•à³†',
+        readAloud: 'à²“à²¦à²¿ à²¹à³‡à²³à²¿',
+        quickCheck: 'à²¤à³à²µà²°à²¿à²¤ à²ªà²°à²¿à²¶à³€à²²à²¨à³†:',
+        currentLocation: 'ðŸ“ à²ªà³à²°à²¸à³à²¤à³à²¤ à²¸à³à²¥à²³',
+        disasterRadarChip: 'ðŸš¨ à²µà²¿à²ªà²¤à³à²¤à³ à²¤à²¨à²¿à²–à³† (Disaster Alert)',
+        cities: [
+          { label: 'à²¬à³†à²‚à²—à²³à³‚à²°à³', query: 'à²¬à³†à²‚à²—à²³à³‚à²°à²¿à²¨à²²à³à²²à²¿ à²­à²¾à²°à²¿ à²®à²³à³† à²…à²¥à²µà²¾ à²ªà³à²°à²µà²¾à²¹à²¦ à²Žà²šà³à²šà²°à²¿à²•à³† à²‡à²¦à³†à²¯à³‡?' },
+          { label: 'à²®à²‚à²—à²³à³‚à²°à³', query: 'à²®à²‚à²—à²³à³‚à²°à²¿à²¨à²²à³à²²à²¿ à²šà²‚à²¡à²®à²¾à²°à³à²¤ à²…à²¥à²µà²¾ à²®à²³à³†à²¯ à²®à³à²¨à³à²¸à³‚à²šà²¨à³† à²¤à²¿à²³à²¿à²¸à²¿' },
+          { label: 'à²®à³ˆà²¸à³‚à²°à³', query: 'à²®à³ˆà²¸à³‚à²°à²¿à²¨ à²¹à²µà²¾à²®à²¾à²¨ à²µà²¿à²µà²°' },
+          { label: 'à²¹à³à²¬à³à²¬à²³à³à²³à²¿', query: 'à²¹à³à²¬à³à²¬à²³à³à²³à²¿ à²¹à²µà²¾à²®à²¾à²¨' }
+        ],
+        welcomeHtml: `à²¨à²®à²¸à³à²•à²¾à²°! à²¨à²¾à²¨à³ <strong>WeatherGPT</strong>, à²¸à³à²®à²¾à²°à³à²Ÿà³ à²‡à²‚à²¡à²¿à²¯à²¾ à²¹à³à²¯à²¾à²•à²¥à²¾à²¨à³ (SIH26068) à²—à²¾à²—à²¿ <strong>à²¹à²µà²¾à²®à²¾à²¨ à²®à²¤à³à²¤à³ à²¨à³ˆà²¸à²°à³à²—à²¿à²• à²µà²¿à²ªà²¤à³à²¤à³ à²ªà²¤à³à²¤à³† à²¸à²¹à²¾à²¯à²•</strong>.<br><br>à²šà²‚à²¡à²®à²¾à²°à³à²¤, à²­à²¾à²°à²¿ à²®à²³à³†, à²ªà³à²°à²µà²¾à²¹ à²…à²¥à²µà²¾ à²¬à²¿à²¸à²¿à²² à²à²³à²¦ à²¬à²—à³à²—à³† à²¨à²¨à³à²¨à²¨à³à²¨à³ à²•à³‡à²³à²¿!`,
+        welcomeSpeech: 'à²¨à²®à²¸à³à²•à²¾à²°! à²¨à²¾à²¨à³ WeatherGPT. à²¨à³€à²µà³ à²¯à²¾à²µ à²Šà²°à²¿à²¨ à²¹à²µà²¾à²®à²¾à²¨ à²…à²¥à²µà²¾ à²µà²¿à²ªà²¤à³à²¤à³ à²Žà²šà³à²šà²°à²¿à²•à³† à²¤à²¿à²³à²¿à²¯à²²à³ à²¬à²¯à²¸à³à²¤à³à²¤à³€à²°à²¿?',
+        placeholder: 'à²¹à²µà²¾à²®à²¾à²¨ à²…à²¥à²µà²¾ à²šà²‚à²¡à²®à²¾à²°à³à²¤/à²ªà³à²°à²µà²¾à²¹à²¦ à²¬à²—à³à²—à³† à²•à³‡à²³à²¿...',
+        micListening: 'ðŸŽ¤ à²†à²²à²¿à²¸à²²à²¾à²—à³à²¤à³à²¤à²¿à²¦à³†... à²¦à²¯à²µà²¿à²Ÿà³à²Ÿà³ à²ˆà²— à²•à²¨à³à²¨à²¡à²¦à²²à³à²²à²¿ à²®à²¾à²¤à²¨à²¾à²¡à²¿.',
+        micError: 'à²§à³à²µà²¨à²¿ à²—à³à²°à³à²¤à²¿à²¸à³à²µà²¿à²•à³†à²¯à²²à³à²²à²¿ à²¦à³‹à²·:',
+        checkingWeather: 'WeatherGPT à²¹à²µà²¾à²®à²¾à²¨ à²®à²¤à³à²¤à³ à²µà²¿à²ªà²¤à³à²¤à³ à²¸à³‚à²šà²•à²—à²³à²¨à³à²¨à³ à²ªà²°à²¿à²¶à³€à²²à²¿à²¸à³à²¤à³à²¤à²¿à²¦à³†...',
+        askLocationHtml: `à²¦à²¯à²µà²¿à²Ÿà³à²Ÿà³ à²¨à³€à²µà³ à²¯à²¾à²µ à²¨à²—à²° à²…à²¥à²µà²¾ à²¸à³à²¥à²³à²¦ à²µà²¿à²µà²° à²¤à²¿à²³à²¿à²¯à²²à³ à²¬à²¯à²¸à³à²¤à³à²¤à³€à²°à²¿ à²Žà²‚à²¦à³ à²¹à³‡à²³à²¿?`,
+        askLocationSpeech: 'à²¦à²¯à²µà²¿à²Ÿà³à²Ÿà³ à²¨à³€à²µà³ à²¯à²¾à²µ à²Šà²°à²¿à²¨ à²¹à²µà²¾à²®à²¾à²¨ à²¤à²¿à²³à²¿à²¯à²²à³ à²¬à²¯à²¸à³à²¤à³à²¤à³€à²°à²¿ à²Žà²‚à²¦à³ à²¹à³‡à²³à²¿?',
+        notFoundHtml: (loc) => `à²¨à²¨à²—à³† <em>"${loc}"</em> à²µà²¿à²µà²°à²—à²³à³ à²¸à²¿à²—à²²à²¿à²²à³à²². à²¦à²¯à²µà²¿à²Ÿà³à²Ÿà³ à²¹à³†à²¸à²°à²¨à³à²¨à³ à²ªà²°à²¿à²¶à³€à²²à²¿à²¸à²¿.`,
+        notFoundSpeech: (loc) => `à²¨à²¨à²—à³† "${loc}" à²µà²¿à²µà²°à²—à²³à³ à²¸à²¿à²—à²²à²¿à²²à³à²².`,
+        greetingHtml: `à²¨à²®à²¸à³à²•à²¾à²°! à²¨à²¾à²¨à³ <strong>WeatherGPT</strong>. à²šà²‚à²¡à²®à²¾à²°à³à²¤, à²­à²¾à²°à²¿ à²®à²³à³†, à²¸à²¿à²¡à²¿à²²à³ à²®à³à²‚à²¤à²¾à²¦ à²¨à³ˆà²¸à²°à³à²—à²¿à²• à²µà²¿à²•à³‹à²ªà²—à²³à²¨à³à²¨à³ à²¨à²¾à²¨à³ à²ªà²¤à³à²¤à³†à²¹à²šà³à²šà³à²¤à³à²¤à³‡à²¨à³†. à²¨à³€à²µà³ à²Žà²²à³à²²à²¿à²¯ à²µà²¿à²µà²° à²¤à²¿à²³à²¿à²¯à²²à³ à²¬à²¯à²¸à³à²¤à³à²¤à³€à²°à²¿?`,
+        greetingSpeech: 'à²¨à²®à²¸à³à²•à²¾à²°! à²¨à³€à²µà³ à²Žà²²à³à²²à²¿à²¯ à²¹à²µà²¾à²®à²¾à²¨ à²¤à²¿à²³à²¿à²¯à²²à³ à²¬à²¯à²¸à³à²¤à³à²¤à³€à²°à²¿?',
+        cardLabels: {
+          condition: 'à²¸à³à²¥à²¿à²¤à²¿',
+          temperature: 'à²¤à²¾à²ªà²®à²¾à²¨',
+          feelsLike: 'à²…à²¨à³à²­à²µ à²¤à²¾à²ªà²®à²¾à²¨',
+          windSpeed: 'à²—à²¾à²³à²¿à²¯ à²µà³‡à²—',
+          humidity: 'à²¤à³‡à²µà²¾à²‚à²¶',
+          highLow: 'à²—à²°à²¿à²·à³à²  / à²•à²¨à²¿à²·à³à² '
+        }
+      }
+    };
+
+    const weatherCodesI18n = {
+      0: { te: 'à°¸à±à°µà°šà±à°›à°®à±ˆà°¨ à°†à°•à°¾à°¶à°‚', en: 'Clear sky', hi: 'à¤¸à¤¾à¤« à¤†à¤¸à¤®à¤¾à¤¨', kn: 'à²¸à³à²µà²šà³à²›à²µà²¾à²¦ à²†à²•à²¾à²¶', icon: 'â˜€ï¸' },
+      1: { te: 'à°Žà°•à±à°•à±à°µà°—à°¾ à°¨à°¿à°°à±à°®à°²à°‚à°—à°¾ à°‰à°‚à°¦à°¿', en: 'Mainly clear', hi: 'à¤®à¥à¤–à¥à¤¯à¤¤à¤ƒ à¤¸à¤¾à¤« à¤†à¤¸à¤®à¤¾à¤¨', kn: 'à²¹à³†à²šà³à²šà²¾à²—à²¿ à²¸à³à²µà²šà³à²›à²µà²¾à²—à²¿à²¦à³†', icon: 'ðŸŒ¤ï¸' },
+      2: { te: 'à°ªà°¾à°•à±à°·à°¿à°•à°‚à°—à°¾ à°®à±‡à°˜à°¾à°µà±ƒà°¤à°‚', en: 'Partly cloudy', hi: 'à¤¹à¤²à¥à¤•à¥‡ à¤¬à¤¾à¤¦à¤²', kn: 'à²­à²¾à²—à²¶à²ƒ à²®à³‹à²¡ à²•à²µà²¿à²¦à²¿à²¦à³†', icon: 'â›…' },
+      3: { te: 'à°ªà±‚à°°à±à°¤à°¿à°—à°¾ à°®à°¬à±à°¬à± à°ªà°Ÿà±à°Ÿà°¿ à°‰à°‚à°¦à°¿', en: 'Overcast', hi: 'à¤˜à¤¨à¥‡ à¤¬à¤¾à¤¦à¤²', kn: 'à²¦à²Ÿà³à²Ÿ à²®à³‹à²¡ à²•à²µà²¿à²¦à²¿à²¦à³†', icon: 'â˜ï¸' },
+      45: { te: 'à°ªà±Šà°—à°®à°‚à°šà±à°—à°¾ à°‰à°‚à°¦à°¿', en: 'Foggy', hi: 'à¤•à¥‹à¤¹à¤°à¤¾ à¤›à¤¾à¤¯à¤¾ à¤¹à¥à¤†', kn: 'à²¦à²Ÿà³à²Ÿ à²®à²‚à²œà³ à²•à²µà²¿à²¦à²¿à²¦à³†', icon: 'ðŸŒ«ï¸' },
+      48: { te: 'à°®à°‚à°šà± à°ªà±Šà°—', en: 'Rime fog', hi: 'à¤¬à¤°à¥à¤«à¤¼à¥€à¤²à¤¾ à¤•à¥‹à¤¹à¤°à¤¾', kn: 'à²¹à²¿à²®à²¦ à²®à²‚à²œà³', icon: 'ðŸŒ«ï¸' },
+      51: { te: 'à°¤à±‡à°²à°¿à°•à°ªà°¾à°Ÿà°¿ à°šà°¿à°¨à±à°•à±à°²à±', en: 'Light drizzle', hi: 'à¤¹à¤²à¥à¤•à¥€ à¤¬à¥‚à¤‚à¤¦à¤¾à¤¬à¤¾à¤‚à¤¦à¥€', kn: 'à²¹à²—à³à²°à²µà²¾à²¦ à²¤à³à²‚à²¤à³à²°à³ à²®à²³à³†', icon: 'ðŸŒ¦ï¸' },
+      53: { te: 'à°®à±‹à°¸à±à°¤à°°à± à°šà°¿à°¨à±à°•à±à°²à±', en: 'Moderate drizzle', hi: 'à¤®à¤§à¥à¤¯à¤® à¤¬à¥‚à¤‚à¤¦à¤¾à¤¬à¤¾à¤‚à¤¦à¥€', kn: 'à²®à²§à³à²¯à²® à²¤à³à²‚à²¤à³à²°à³ à²®à²³à³†', icon: 'ðŸŒ¦ï¸' },
+      55: { te: 'à°¦à°Ÿà±à°Ÿà°®à±ˆà°¨ à°šà°¿à°¨à±à°•à±à°²à±', en: 'Heavy drizzle', hi: 'à¤¤à¥‡à¤œ à¤¬à¥‚à¤‚à¤¦à¤¾à¤¬à¤¾à¤‚à¤¦à¥€', kn: 'à²­à²¾à²°à²¿ à²¤à³à²‚à²¤à³à²°à³ à²®à²³à³†', icon: 'ðŸŒ§ï¸' },
+      61: { te: 'à°¤à±‡à°²à°¿à°•à°ªà°¾à°Ÿà°¿ à°µà°°à±à°·à°‚', en: 'Slight rain', hi: 'à¤¹à¤²à¥à¤•à¥€ à¤¬à¤¾à¤°à¤¿à¤¶', kn: 'à²¸à³à²µà²²à³à²ª à²®à²³à³†', icon: 'ðŸŒ§ï¸' },
+      63: { te: 'à°®à±‹à°¸à±à°¤à°°à± à°µà°°à±à°·à°‚', en: 'Moderate rain', hi: 'à¤®à¤§à¥à¤¯à¤® à¤¬à¤¾à¤°à¤¿à¤¶', kn: 'à²®à²§à³à²¯à²® à²®à²³à³†', icon: 'ðŸŒ§ï¸' },
+      65: { te: 'à°­à°¾à°°à±€ à°µà°°à±à°·à°‚', en: 'Heavy rain', hi: 'à¤­à¤¾à¤°à¥€ à¤¬à¤¾à¤°à¤¿à¤¶', kn: 'à²­à²¾à²°à²¿ à²®à²³à³†', icon: 'ðŸŒ§ï¸' },
+      71: { te: 'à°¤à±‡à°²à°¿à°•à°ªà°¾à°Ÿà°¿ à°¹à°¿à°®à°ªà°¾à°¤à°‚', en: 'Light snowfall', hi: 'à¤¹à¤²à¥à¤•à¥€ à¤¬à¤°à¥à¤«à¤¬à¤¾à¤°à¥€', kn: 'à²¹à²—à³à²°à²µà²¾à²¦ à²¹à²¿à²®à²ªà²¾à²¤', icon: 'â„ï¸' },
+      73: { te: 'à°®à±‹à°¸à±à°¤à°°à± à°¹à°¿à°®à°ªà°¾à°¤à°‚', en: 'Moderate snowfall', hi: 'à¤®à¤§à¥à¤¯à¤® à¤¬à¤°à¥à¤«à¤¬à¤¾à¤°à¥€', kn: 'à²®à²§à³à²¯à²® à²¹à²¿à²®à²ªà²¾à²¤', icon: 'â„ï¸' },
+      75: { te: 'à°­à°¾à°°à±€ à°¹à°¿à°®à°ªà°¾à°¤à°‚', en: 'Heavy snowfall', hi: 'à¤­à¤¾à¤°à¥€ à¤¬à¤°à¥à¤«à¤¬à¤¾à¤°à¥€', kn: 'à²­à²¾à²°à²¿ à²¹à²¿à²®à²ªà²¾à²¤', icon: 'â„ï¸' },
+      80: { te: 'à°µà°°à±à°·à°ªà± à°œà°²à±à°²à±à°²à±', en: 'Rain showers', hi: 'à¤¬à¤¾à¤°à¤¿à¤¶ à¤•à¥€ à¤¬à¥Œà¤›à¤¾à¤°à¥‡à¤‚', kn: 'à²®à²³à³†à²¯ à²¸à²¿à²‚à²šà²¨', icon: 'ðŸŒ¦ï¸' },
+      81: { te: 'à°“ à°®à±‹à°¸à±à°¤à°°à± à°œà°²à±à°²à±à°²à±', en: 'Moderate showers', hi: 'à¤®à¤§à¥à¤¯à¤® à¤¬à¥Œà¤›à¤¾à¤°à¥‡à¤‚', kn: 'à²®à²§à³à²¯à²® à²®à²³à³† à²¸à²¿à²‚à²šà²¨', icon: 'ðŸŒ§ï¸' },
+      82: { te: 'à°¤à±€à°µà±à°°à°®à±ˆà°¨ à°µà°°à±à°·à°ªà± à°œà°²à±à°²à±à°²à±', en: 'Violent showers', hi: 'à¤¤à¥‡à¤œ à¤¬à¤¾à¤°à¤¿à¤¶ à¤•à¥€ à¤¬à¥Œà¤›à¤¾à¤°à¥‡à¤‚', kn: 'à²­à³€à²•à²° à²®à²³à³† à²¸à²¿à²‚à²šà²¨', icon: 'â›ˆï¸' },
+      95: { te: 'à°‰à°°à±à°®à±à°²à°¤à±‹ à°•à±‚à°¡à°¿à°¨ à°µà°°à±à°·à°‚', en: 'Thunderstorm', hi: 'à¤—à¤°à¤œ à¤•à¥‡ à¤¸à¤¾à¤¥ à¤¤à¥‚à¤«à¤¾à¤¨', kn: 'à²—à³à²¡à³à²—à³ à²¸à²¹à²¿à²¤ à²®à²³à³†', icon: 'â›ˆï¸' },
+      96: { te: 'à°µà°¡à°—à°‚à°¡à±à°² à°µà°¾à°¨à°¤à±‹ à°•à±‚à°¡à°¿à°¨ à°¤à±à°«à°¾à°¨à±', en: 'Thunderstorm with hail', hi: 'à¤“à¤²à¥‹à¤‚ à¤•à¥‡ à¤¸à¤¾à¤¥ à¤¤à¥‚à¤«à¤¾à¤¨', kn: 'à²†à²²à²¿à²•à²²à³à²²à³ à²¸à²¹à²¿à²¤ à²—à³à²¡à³à²—à³ à²®à²³à³†', icon: 'â›ˆï¸' },
+      99: { te: 'à°¤à±€à°µà±à°°à°®à±ˆà°¨ à°µà°¡à°—à°‚à°¡à±à°² à°¤à±à°«à°¾à°¨à±', en: 'Severe thunderstorm with hail', hi: 'à¤­à¤¾à¤°à¥€ à¤“à¤²à¥‹à¤‚ à¤•à¥‡ à¤¸à¤¾à¤¥ à¤­à¥€à¤·à¤£ à¤¤à¥‚à¤«à¤¾à¤¨', kn: 'à²­à²¾à²°à²¿ à²†à²²à²¿à²•à²²à³à²²à³ à²¸à²¹à²¿à²¤ à²­à³€à²•à²° à²®à²³à³†', icon: 'â›ˆï¸' }
+    };
+
+    const cityTransliterations = {
+      'à°¹à±ˆà°¦à°°à°¾à°¬à°¾à°¦à±': 'Hyderabad', 'à°­à°¾à°—à±à°¯à°¨à°—à°°à°‚': 'Hyderabad', 'à°µà°¿à°¶à°¾à°–à°ªà°Ÿà±à°¨à°‚': 'Visakhapatnam', 'à°µà°¿à°¶à°¾à°–': 'Visakhapatnam', 'à°µà±ˆà°œà°¾à°—à±': 'Visakhapatnam',
+      'à°µà°¿à°œà°¯à°µà°¾à°¡': 'Vijayawada', 'à°¬à±†à°œà°µà°¾à°¡': 'Vijayawada', 'à°—à±à°‚à°Ÿà±‚à°°à±': 'Guntur', 'à°¨à±†à°²à±à°²à±‚à°°à±': 'Nellore', 'à°•à°°à±à°¨à±‚à°²à±': 'Kurnool',
+      'à°°à°¾à°œà°®à°‚à°¡à±à°°à°¿': 'Rajahmundry', 'à°°à°¾à°œà°®à°¹à±‡à°‚à°¦à±à°°à°µà°°à°‚': 'Rajahmundry', 'à°¤à°¿à°°à±à°ªà°¤à°¿': 'Tirupati', 'à°•à°¡à°ª': 'Kadapa', 'à°…à°¨à°‚à°¤à°ªà±à°°à°‚': 'Anantapur',
+      'à°µà°°à°‚à°—à°²à±': 'Warangal', 'à°µà°°à°‚à°—à°²à±à°²à±': 'Warangal', 'à°¨à°¿à°œà°¾à°®à°¾à°¬à°¾à°¦à±': 'Nizamabad', 'à°•à°°à±€à°‚à°¨à°—à°°à±': 'Karimnagar', 'à°–à°®à±à°®à°‚': 'Khammam',
+      'à°°à°¾à°®à°—à±à°‚à°¡à°‚': 'Ramagundam', 'à°®à°¹à°¬à±‚à°¬à±â€Œà°¨à°—à°°à±': 'Mahabubnagar', 'à°®à°¹à°¬à±‚à°¬à± à°¨à°—à°°à±': 'Mahabubnagar', 'à°ªà°¾à°²à°®à±‚à°°à±': 'Mahabubnagar',
+      'à°¨à°²à±à°—à±Šà°‚à°¡': 'Nalgonda', 'à°¸à±‚à°°à±à°¯à°¾à°ªà±‡à°Ÿ': 'Suryapet', 'à°†à°¦à°¿à°²à°¾à°¬à°¾à°¦à±': 'Adilabad', 'à°¸à°¿à°¦à±à°¦à°¿à°ªà±‡à°Ÿ': 'Siddipet', 'à°®à°¿à°°à±à°¯à°¾à°²à°—à±‚à°¡': 'Miryalaguda',
+      'à°à°²à±‚à°°à±': 'Eluru', 'à°’à°‚à°—à±‹à°²à±': 'Ongole', 'à°®à°šà°¿à°²à±€à°ªà°Ÿà±à°¨à°‚': 'Machilipatnam', 'à°¬à°‚à°¦à°°à±': 'Machilipatnam', 'à°¤à±†à°¨à°¾à°²à°¿': 'Tenali',
+      'à°šà°¿à°¤à±à°¤à±‚à°°à±': 'Chittoor', 'à°¹à°¿à°‚à°¦à±‚à°ªà±à°°à°‚': 'Hindupur', 'à°­à±€à°®à°µà°°à°‚': 'Bhimavaram', 'à°®à°¦à°¨à°ªà°²à±à°²à±†': 'Madanapalle', 'à°¶à±à°°à±€à°•à°¾à°•à±à°³à°‚': 'Srikakulam',
+      'à°µà°¿à°œà°¯à°¨à°—à°°à°‚': 'Vizianagaram', 'à°ªà±à°°à±Šà°¦à±à°¦à±à°Ÿà±‚à°°à±': 'Proddatur', 'à°¤à°¾à°¡à±‡à°ªà°²à±à°²à°¿à°—à±‚à°¡à±†à°‚': 'Tadepalligudem', 'à°§à°°à±à°®à°µà°°à°‚': 'Dharmavaram',
+      'à°¬à±†à°‚à°—à°³à±‚à°°à±': 'Bengaluru', 'à°¬à±†à°‚à°—à°³à±‚à°°à±': 'Bengaluru', 'à°šà±†à°¨à±à°¨à±ˆ': 'Chennai', 'à°®à°¦à±à°°à°¾à°¸à±': 'Chennai', 'à°¢à°¿à°²à±à°²à±€': 'Delhi',
+      'à°¨à±à°¯à±‚à°¢à°¿à°²à±à°²à±€': 'New Delhi', 'à°®à±à°‚à°¬à±ˆ': 'Mumbai', 'à°¬à±Šà°‚à°¬à°¾à°¯à°¿': 'Mumbai', 'à°•à±‹à°²à±â€Œà°•à°¤à°¾': 'Kolkata',
+
+      'à¤¦à¤¿à¤²à¥à¤²à¥€': 'Delhi', 'à¤¨à¤ˆ à¤¦à¤¿à¤²à¥à¤²à¥€': 'New Delhi', 'à¤®à¥à¤‚à¤¬à¤ˆ': 'Mumbai', 'à¤¬à¥‡à¤‚à¤—à¤²à¥à¤°à¥': 'Bengaluru', 'à¤¬à¥ˆà¤‚à¤—à¤²à¥‹à¤°': 'Bengaluru',
+      'à¤¹à¥ˆà¤¦à¤°à¤¾à¤¬à¤¾à¤¦': 'Hyderabad', 'à¤šà¥‡à¤¨à¥à¤¨à¤ˆ': 'Chennai', 'à¤•à¥‹à¤²à¤•à¤¾à¤¤à¤¾': 'Kolkata', 'à¤ªà¥à¤£à¥‡': 'Pune', 'à¤…à¤¹à¤®à¤¦à¤¾à¤¬à¤¾à¤¦': 'Ahmedabad',
+      'à¤œà¤¯à¤ªà¥à¤°': 'Jaipur', 'à¤²à¤–à¤¨à¤Š': 'Lucknow', 'à¤•à¤¾à¤¨à¤ªà¥à¤°': 'Kanpur', 'à¤¨à¤¾à¤—à¤ªà¥à¤°': 'Nagpur', 'à¤‡à¤‚à¤¦à¥Œà¤°': 'Indore',
+      'à¤­à¥‹à¤ªà¤¾à¤²': 'Bhopal', 'à¤ªà¤Ÿà¤¨à¤¾': 'Patna', 'à¤µà¤¡à¥‹à¤¦à¤°à¤¾': 'Vadodara', 'à¤—à¤¾à¤œà¤¿à¤¯à¤¾à¤¬à¤¾à¤¦': 'Ghaziabad', 'à¤²à¥à¤§à¤¿à¤¯à¤¾à¤¨à¤¾': 'Ludhiana',
+      'à¤†à¤—à¤°à¤¾': 'Agra', 'à¤¨à¤¾à¤¸à¤¿à¤•': 'Nashik', 'à¤µà¤¾à¤°à¤¾à¤£à¤¸à¥€': 'Varanasi', 'à¤®à¥‡à¤°à¤ ': 'Meerut', 'à¤°à¤¾à¤œà¤•à¥‹à¤Ÿ': 'Rajkot',
+      'à¤…à¤®à¥ƒà¤¤à¤¸à¤°': 'Amritsar', 'à¤ªà¥à¤°à¤¯à¤¾à¤—à¤°à¤¾à¤œ': 'Prayagraj', 'à¤°à¤¾à¤‚à¤šà¥€': 'Ranchi', 'à¤—à¥à¤µà¤¾à¤²à¤¿à¤¯à¤°': 'Gwalior', 'à¤šà¤‚à¤¡à¥€à¤—à¤¢à¤¼': 'Chandigarh',
+      'à¤µà¤¿à¤¶à¤¾à¤–à¤¾à¤ªà¤Ÿà¥à¤Ÿà¤¨à¤®': 'Visakhapatnam', 'à¤µà¤¿à¤œà¤¯à¤µà¤¾à¤¡à¤¼à¤¾': 'Vijayawada', 'à¤®à¥ˆà¤¸à¥‚à¤°': 'Mysuru',
+
+      'à²®à³ˆà²¸à³‚à²°à³': 'Mysuru', 'à²¹à³à²¬à³à²¬à²³à³à²³à²¿': 'Hubli', 'à²®à²‚à²—à²³à³‚à²°à³': 'Mangalore', 'à²¬à³†à²³à²—à²¾à²µà²¿': 'Belagavi', 'à²¦à²¾à²µà²£à²—à³†à²°à³†': 'Davanagere',
+      'à²¬à²³à³à²³à²¾à²°à²¿': 'Ballari', 'à²µà²¿à²œà²¯à²ªà³à²°': 'Vijayapura', 'à²¶à²¿à²µà²®à³Šà²—à³à²—': 'Shivamogga', 'à²¤à³à²®à²•à³‚à²°à³': 'Tumakuru', 'à²°à²¾à²¯à²šà³‚à²°à³': 'Raichur',
+      'à²¬à³€à²¦à²°à³': 'Bidar', 'à²‰à²¡à³à²ªà²¿': 'Udupi', 'à²•à²²à²¬à³à²°à²—à²¿': 'Kalaburagi', 'à²¹à²¾à²¸à²¨': 'Hassan', 'à²šà²¿à²•à³à²•à²®à²—à²³à³‚à²°à³': 'Chikkamagaluru'
+    };
+
+    let currentLang = 'te';
+
+    const chatContainer = document.getElementById('chatContainer');
+    const chatForm = document.getElementById('chatForm');
+    const queryInput = document.getElementById('queryInput');
+    const sendButton = document.getElementById('sendButton');
+    const micButton = document.getElementById('micButton');
+    const ttsCheckbox = document.getElementById('ttsCheckbox');
+    const ttsLabelText = document.getElementById('ttsLabelText');
+    const statusMsg = document.getElementById('statusMsg');
+    const langSelect = document.getElementById('langSelect');
+    const headerTagline = document.getElementById('headerTagline');
+    const quickCheckLabel = document.getElementById('quickCheckLabel');
+    const chipsContainer = document.getElementById('chipsContainer');
+    const welcomeMessageBubble = document.getElementById('welcomeMessageBubble');
+
+    function detectDisasters(weatherData) {
+      const { temp, feelsLike, wind, precipitation, weatherCode } = weatherData;
+      const hazards = [];
+
+      if (wind >= 65) {
+        hazards.push({
+          level: 'danger',
+          type: 'cyclone',
+          icon: 'ðŸŒªï¸',
+          title: {
+            te: 'à°¤à±€à°µà±à°° à°¤à±à°«à°¾à°¨à± & à°ªà±†à°¨à±à°—à°¾à°²à±à°² à°¹à±†à°šà±à°šà°°à°¿à°• (Severe Cyclonic Storm Alert)',
+            en: 'Severe Cyclonic Storm & Gale Warning',
+            hi: 'à¤­à¥€à¤·à¤£ à¤šà¤•à¥à¤°à¤µà¤¾à¤¤à¥€ à¤¤à¥‚à¤«à¤¾à¤¨ à¤µ à¤ªà¥à¤°à¤šà¤‚à¤¡ à¤¹à¤µà¤¾ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²¤à³€à²µà³à²° à²šà²‚à²¡à²®à²¾à²°à³à²¤ à²®à²¤à³à²¤à³ à²­à²¾à²°à²¿ à²¬à²¿à²°à³à²—à²¾à²³à²¿ à²®à³à²¨à³à²¨à³†à²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°—à°¾à°²à°¿ à°µà±‡à°—à°‚ à°—à°‚à°Ÿà°•à± ${wind} à°•à°¿.à°®à±€ à°—à°¾ à°¨à°®à±‹à°¦à±ˆà°‚à°¦à°¿. à°šà±†à°Ÿà±à°²à±, à°µà°¿à°¦à±à°¯à±à°¤à± à°¸à±à°¤à°‚à°­à°¾à°²à± à°¨à±‡à°²à°•à±‚à°²à±‡ à°®à±à°ªà±à°ªà± à°‰à°‚à°¦à°¿.`,
+            en: `Wind gusts recorded at ${wind} km/h. Structural damage and falling trees risk.`,
+            hi: `à¤¹à¤µà¤¾ à¤•à¥€ à¤—à¤¤à¤¿ ${wind} à¤•à¤¿à¤®à¥€/à¤˜à¤‚à¤Ÿà¤¾ à¤¦à¤°à¥à¤œ à¤•à¥€ à¤—à¤ˆ à¤¹à¥ˆà¥¤ à¤ªà¥‡à¤¡à¤¼à¥‹à¤‚ à¤”à¤° à¤¬à¤¿à¤œà¤²à¥€ à¤•à¥‡ à¤–à¤‚à¤­à¥‹à¤‚ à¤•à¥‡ à¤—à¤¿à¤°à¤¨à¥‡ à¤•à¤¾ à¤­à¤¾à¤°à¥€ à¤–à¤¤à¤°à¤¾ à¤¹à¥ˆà¥¤`,
+            kn: `à²—à²¾à²³à²¿à²¯ à²µà³‡à²— à²—à²‚à²Ÿà³†à²—à³† ${wind} à²•à²¿.à²®à³€ à²¦à²¾à²–à²²à²¾à²—à²¿à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°¸à±à°°à°•à±à°·à°¿à°¤ à°­à°µà°¨à°¾à°²à±à°²à±‹à°¨à±‡ à°‰à°‚à°¡à°‚à°¡à°¿. à°µà°¿à°¦à±à°¯à±à°¤à± à°¸à±à°¤à°‚à°­à°¾à°²à± à°®à°°à°¿à°¯à± à°šà±†à°Ÿà±à°² à°•à°¿à°‚à°¦ à°¨à°¿à°²à°¬à°¡à°µà°¦à±à°¦à±. à°…à°¤à±à°¯à°µà°¸à°° à°¸à°¾à°¯à°‚ à°•à±‹à°¸à°‚ à°¸à°¿à°¦à±à°§à°‚à°—à°¾ à°‰à°‚à°¡à°‚à°¡à°¿.',
+            en: 'Stay strictly indoors away from glass windows, power lines, and weak roofs.',
+            hi: 'à¤˜à¤°à¥‹à¤‚ à¤•à¥‡ à¤…à¤‚à¤¦à¤° à¤¹à¥€ à¤°à¤¹à¥‡à¤‚, à¤ªà¥‡à¤¡à¤¼à¥‹à¤‚ à¤”à¤° à¤¬à¤¿à¤œà¤²à¥€ à¤•à¥‡ à¤¤à¤¾à¤°à¥‹à¤‚ à¤¸à¥‡ à¤¦à¥‚à¤° à¤°à¤¹à¥‡à¤‚à¥¤',
+            kn: 'à²¸à³à²°à²•à³à²·à²¿à²¤ à²•à²Ÿà³à²Ÿà²¡à²—à²³à²²à³à²²à²¿à²°à²¿, à²µà²¿à²¦à³à²¯à³à²¤à³ à²•à²‚à²¬à²—à²³à²¿à²‚à²¦ à²¦à³‚à²°à²µà²¿à²°à²¿.'
+          }
+        });
+      } else if (wind >= 45) {
+        hazards.push({
+          level: 'warning',
+          type: 'high_wind',
+          icon: 'ðŸ’¨',
+          title: {
+            te: 'à°¬à°²à°®à±ˆà°¨ à°—à°¾à°²à±à°² à°¹à±†à°šà±à°šà°°à°¿à°• (High Wind Alert)',
+            en: 'Strong Wind Advisory',
+            hi: 'à¤¤à¥‡à¤œ à¤¹à¤µà¤¾à¤“à¤‚ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²¬à²²à²µà²¾à²¦ à²—à²¾à²³à²¿ à²®à³à²¨à³à²¨à³†à²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°—à°¾à°²à°¿ à°µà±‡à°—à°‚ à°—à°‚à°Ÿà°•à± ${wind} à°•à°¿.à°®à±€ à°—à°¾ à°‰à°‚à°¦à°¿. à°¦à±à°µà°¿à°šà°•à±à°° à°µà°¾à°¹à°¨à°¦à°¾à°°à±à°²à± à°œà°¾à°—à±à°°à°¤à±à°¤ à°µà°¹à°¿à°‚à°šà°¾à°²à°¿.`,
+            en: `Winds blowing at ${wind} km/h.`,
+            hi: `à¤¹à¤µà¤¾ à¤•à¥€ à¤—à¤¤à¤¿ ${wind} à¤•à¤¿à¤®à¥€/à¤˜à¤‚à¤Ÿà¤¾ à¤¹à¥ˆà¥¤`,
+            kn: `à²—à²¾à²³à²¿à²¯ à²µà³‡à²— à²—à²‚à²Ÿà³†à²—à³† ${wind} à²•à²¿.à²®à³€ à²‡à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°¬à°¹à°¿à°°à°‚à°— à°ªà±à°°à°¦à±‡à°¶à°¾à°²à±à°²à±‹ à°µà°¸à±à°¤à±à°µà±à°²à°¨à± à°­à°¦à±à°°à°ªà°°à°šà°‚à°¡à°¿, à°ªà±à°°à°¯à°¾à°£à°¾à°²à±à°²à±‹ à°œà°¾à°—à±à°°à°¤à±à°¤ à°µà°¹à°¿à°‚à°šà°‚à°¡à°¿.',
+            en: 'Secure loose outdoor items. Exercise caution when driving on highways.',
+            hi: 'à¤–à¥à¤²à¥‡ à¤®à¥‡à¤‚ à¤°à¤–à¥€ à¤µà¤¸à¥à¤¤à¥à¤“à¤‚ à¤•à¥‹ à¤¬à¤¾à¤‚à¤§à¤•à¤° à¤°à¤–à¥‡à¤‚à¥¤',
+            kn: 'à²ªà³à²°à²¯à²¾à²£à²¦à²²à³à²²à²¿ à²Žà²šà³à²šà²°à²¿à²•à³† à²µà²¹à²¿à²¸à²¿.'
+          }
+        });
+      }
+
+      if (weatherCode === 65 || weatherCode === 82 || precipitation >= 15) {
+        hazards.push({
+          level: 'danger',
+          type: 'flood',
+          icon: 'ðŸŒŠ',
+          title: {
+            te: 'à°…à°¤à°¿ à°­à°¾à°°à±€ à°µà°°à±à°·à°‚ & à°†à°•à°¸à±à°®à°¿à°• à°µà°°à°¦ à°®à±à°ªà±à°ªà± (Torrential Rain & Flood Hazard)',
+            en: 'Torrential Downpour & Flash Flood Hazard',
+            hi: 'à¤…à¤¤à¤¿ à¤­à¤¾à¤°à¥€ à¤µà¤°à¥à¤·à¤¾ à¤µ à¤¬à¤¾à¤¢à¤¼ à¤•à¥€ à¤—à¤‚à¤­à¥€à¤° à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²­à²¾à²°à²¿ à²®à²³à³† à²®à²¤à³à²¤à³ à²ªà³à²°à²µà²¾à²¹à²¦ à²¤à³€à²µà³à²° à²Žà²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°¤à±€à°µà±à°° à°µà°°à±à°·à°ªà°¾à°¤à°‚ (${precipitation} à°®à°¿.à°®à±€). à°²à±‹à°¤à°Ÿà±à°Ÿà± à°ªà±à°°à°¾à°‚à°¤à°¾à°²à± à°œà°²à°®à°¯à°‚ à°…à°¯à±à°¯à±‡ à°¤à±€à°µà±à°° à°…à°µà°•à°¾à°¶à°‚ à°‰à°‚à°¦à°¿.`,
+            en: `Severe precipitation (${precipitation} mm). High risk of flash flooding and waterlogging.`,
+            hi: `à¤­à¥€à¤·à¤£ à¤¬à¤¾à¤°à¤¿à¤¶ (${precipitation} à¤®à¤¿à¤®à¥€)à¥¤ à¤¨à¤¿à¤šà¤²à¥‡ à¤‡à¤²à¤¾à¤•à¥‹à¤‚ à¤®à¥‡à¤‚ à¤œà¤²à¤­à¤°à¤¾à¤µ à¤”à¤° à¤¬à¤¾à¤¢à¤¼ à¤•à¤¾ à¤–à¤¤à¤°à¤¾à¥¤`,
+            kn: `à²­à²¾à²°à²¿ à²®à²³à³† (${precipitation} à²®à²¿.à²®à³€) à²¦à²¾à²–à²²à²¾à²—à²¿à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°²à±‹à°¤à°Ÿà±à°Ÿà± à°ªà±à°°à°¾à°‚à°¤à°¾à°² à°ªà±à°°à°œà°²à± à°¸à±à°°à°•à±à°·à°¿à°¤ à°ªà±à°°à°¾à°‚à°¤à°¾à°²à°•à± à°µà±†à°³à±à°²à°‚à°¡à°¿. à°µà°°à°¦ à°¨à±€à°Ÿà°¿à°²à±‹ à°ªà±à°°à°¯à°¾à°£à°¿à°‚à°šà°µà°¦à±à°¦à±.',
+            en: 'Do not attempt to walk or drive through flooded roads. Move to higher ground.',
+            hi: 'à¤¬à¤¾à¤¢à¤¼ à¤¸à¤‚à¤­à¤¾à¤µà¤¿à¤¤ à¤•à¥à¤·à¥‡à¤¤à¥à¤°à¥‹à¤‚ à¤¸à¥‡ à¤¦à¥‚à¤° à¤°à¤¹à¥‡à¤‚ à¤”à¤° à¤œà¤²à¤®à¤—à¥à¤¨ à¤°à¤¾à¤¸à¥à¤¤à¥‹à¤‚ à¤ªà¤° à¤µà¤¾à¤¹à¤¨ à¤¨ à¤šà¤²à¤¾à¤à¤‚à¥¤',
+            kn: 'à²¤à²—à³à²—à³ à²ªà³à²°à²¦à³‡à²¶à²—à²³à²¿à²‚à²¦ à²¸à³à²°à²•à³à²·à²¿à²¤ à²¸à³à²¥à²³à²—à²³à²¿à²—à³† à²¤à³†à²°à²³à²¿.'
+          }
+        });
+      } else if (weatherCode === 63 || weatherCode === 81 || precipitation >= 5) {
+        hazards.push({
+          level: 'warning',
+          type: 'rain',
+          icon: 'ðŸŒ§ï¸',
+          title: {
+            te: 'à°­à°¾à°°à±€ à°µà°°à±à°·à°ªà± à°¹à±†à°šà±à°šà°°à°¿à°• (Heavy Rain Advisory)',
+            en: 'Heavy Rain Advisory',
+            hi: 'à¤­à¤¾à¤°à¥€ à¤¬à¤¾à¤°à¤¿à¤¶ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²­à²¾à²°à²¿ à²®à²³à³†à²¯ à²®à³à²¨à³à²¸à³‚à²šà²¨à³†'
+          },
+          detail: {
+            te: `à°°à±‹à°¡à±à°²à°ªà±ˆ à°¨à±€à°°à± à°¨à°¿à°²à°¿à°šà±‡ à°…à°µà°•à°¾à°¶à°‚ à°‰à°‚à°¦à°¿. à°ªà±à°°à°¯à°¾à°£à°¾à°²à±à°²à±‹ à°œà°¾à°—à±à°°à°¤à±à°¤ à°µà°¹à°¿à°‚à°šà°‚à°¡à°¿.`,
+            en: `Waterlogging expected in low-lying roads and traffic intersections.`,
+            hi: `à¤¸à¤¡à¤¼à¤•à¥‹à¤‚ à¤ªà¤° à¤œà¤²à¤­à¤°à¤¾à¤µ à¤”à¤° à¤¯à¤¾à¤¤à¤¾à¤¯à¤¾à¤¤ à¤®à¥‡à¤‚ à¤¬à¤¾à¤§à¤¾ à¤¸à¤‚à¤­à¤µà¥¤`,
+            kn: `à²°à²¸à³à²¤à³†à²—à²³à²²à³à²²à²¿ à²¨à³€à²°à³ à²¨à²¿à²²à³à²²à³à²µ à²¸à²¾à²§à³à²¯à²¤à³† à²‡à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°—à±Šà°¡à±à°—à± à°²à±‡à°¦à°¾ à°°à±†à°¯à°¿à°¨à±â€Œà°•à±‹à°Ÿà± à°µà±†à°‚à°Ÿ à°‰à°‚à°šà±à°•à±‹à°‚à°¡à°¿, à°…à°¨à°µà°¸à°° à°ªà±à°°à°¯à°¾à°£à°¾à°²à± à°µà°¾à°¯à°¿à°¦à°¾ à°µà±‡à°¸à±à°•à±‹à°‚à°¡à°¿.',
+            en: 'Carry rain protection and plan for travel delays.',
+            hi: 'à¤…à¤¨à¤¾à¤µà¤¶à¥à¤¯à¤• à¤¯à¤¾à¤¤à¥à¤°à¤¾ à¤¸à¥‡ à¤¬à¤šà¥‡à¤‚ à¤”à¤° à¤›à¤¾à¤¤à¤¾ à¤¸à¤¾à¤¥ à¤°à¤–à¥‡à¤‚à¥¤',
+            kn: 'à²®à²³à³†à²¯à²¿à²‚à²¦ à²°à²•à³à²·à²£à³† à²ªà²¡à³†à²¯à²¿à²°à²¿.'
+          }
+        });
+      }
+
+      if (weatherCode === 96 || weatherCode === 99) {
+        hazards.push({
+          level: 'danger',
+          type: 'lightning_hail',
+          icon: 'â›ˆï¸',
+          title: {
+            te: 'à°µà°¡à°—à°‚à°¡à±à°² à°µà°¾à°¨ & à°ªà°¿à°¡à±à°—à±à°ªà°¾à°Ÿà± à°®à±à°ªà±à°ªà± (Severe Thunderstorm & Lightning Hazard)',
+            en: 'Severe Thunderstorm with Hail & Lightning',
+            hi: 'à¤“à¤²à¤¾à¤µà¥ƒà¤·à¥à¤Ÿà¤¿ à¤µ à¤†à¤•à¤¾à¤¶à¥€à¤¯ à¤¬à¤¿à¤œà¤²à¥€ à¤•à¤¾ à¤–à¤¤à¤°à¤¾',
+            kn: 'à²†à²²à²¿à²•à²²à³à²²à³ à²¸à²¹à²¿à²¤ à²­à³€à²•à²° à²—à³à²¡à³à²—à³-à²¸à²¿à²¡à²¿à²²à³ à²Žà²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°¤à±€à°µà±à°°à°®à±ˆà°¨ à°ªà°¿à°¡à±à°—à±à°²à± à°®à°°à°¿à°¯à± à°µà°¡à°—à°‚à°¡à±à°²à± à°ªà°¡à±‡ à°…à°µà°•à°¾à°¶à°‚ à°‰à°‚à°¦à°¿. à°¬à°¹à°¿à°°à°‚à°— à°ªà±à°°à°¦à±‡à°¶à°¾à°²à±à°²à±‹ à°‰à°‚à°¡à°¡à°‚ à°ªà±à°°à°®à°¾à°¦à°•à°°à°‚.`,
+            en: `Dangerous cloud-to-ground lightning and damaging hail strikes detected.`,
+            hi: `à¤¬à¤¿à¤œà¤²à¥€ à¤—à¤¿à¤°à¤¨à¥‡ à¤”à¤° à¤“à¤²à¥‡ à¤ªà¤¡à¤¼à¤¨à¥‡ à¤•à¥€ à¤…à¤¤à¥à¤¯à¤§à¤¿à¤• à¤†à¤¶à¤‚à¤•à¤¾ à¤¹à¥ˆà¥¤`,
+            kn: `à²¸à²¿à²¡à²¿à²²à³ à²®à²¤à³à²¤à³ à²†à²²à²¿à²•à²²à³à²²à³ à²¬à³€à²³à³à²µ à²¸à²¾à²§à³à²¯à²¤à³† à²‡à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°šà±†à°Ÿà±à°²à±, à°‡à°¨à±à°ª à°¸à±à°¤à°‚à°­à°¾à°² à°•à°¿à°‚à°¦ à°¨à°¿à°²à°¬à°¡à°µà°¦à±à°¦à±. à°µà±†à°‚à°Ÿà°¨à±‡ à°•à°¾à°‚à°•à±à°°à±€à°Ÿà± à°­à°µà°¨à°‚à°²à±‹ à°†à°¶à±à°°à°¯à°‚ à°ªà±Šà°‚à°¦à°‚à°¡à°¿.',
+            en: 'Seek immediate hard-top shelter. Do not seek shelter under isolated trees.',
+            hi: 'à¤ªà¥‡à¤¡à¤¼à¥‹à¤‚ à¤¯à¤¾ à¤¬à¤¿à¤œà¤²à¥€ à¤•à¥‡ à¤–à¤‚à¤­à¥‹à¤‚ à¤•à¥‡ à¤¨à¥€à¤šà¥‡ à¤¶à¤°à¤£ à¤¨ à¤²à¥‡à¤‚à¥¤ à¤ªà¤•à¥à¤•à¥‡ à¤®à¤•à¤¾à¤¨ à¤•à¥‡ à¤­à¥€à¤¤à¤° à¤œà¤¾à¤à¤‚à¥¤',
+            kn: 'à²®à²°à²—à²³ à²•à³†à²³à²—à³† à²¨à²¿à²²à³à²²à²¬à³‡à²¡à²¿, à²¸à³à²°à²•à³à²·à²¿à²¤ à²•à²Ÿà³à²Ÿà²¡à²¦à²²à³à²²à²¿à²°à²¿.'
+          }
+        });
+      } else if (weatherCode === 95) {
+        hazards.push({
+          level: 'warning',
+          type: 'thunderstorm',
+          icon: 'âš¡',
+          title: {
+            te: 'à°‰à°°à±à°®à±à°²à± & à°®à±†à°°à±à°ªà±à°² à°¹à±†à°šà±à°šà°°à°¿à°• (Thunderstorm Alert)',
+            en: 'Thunderstorm & Lightning Watch',
+            hi: 'à¤—à¤°à¤œ-à¤šà¤®à¤• à¤•à¥‡ à¤¸à¤¾à¤¥ à¤†à¤‚à¤§à¥€ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²—à³à²¡à³à²—à³-à²®à²¿à²‚à²šà²¿à²¨ à²Žà²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°†à°•à°¾à°¶à°‚à°²à±‹ à°‰à°°à±à°®à±à°²à±, à°®à±†à°°à±à°ªà±à°²à°¤à±‹ à°•à±‚à°¡à°¿à°¨ à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°¨à±†à°²à°•à±Šà°‚à°¦à°¿.`,
+            en: `Thunderstorms active in the area.`,
+            hi: `à¤•à¥à¤·à¥‡à¤¤à¥à¤° à¤®à¥‡à¤‚ à¤—à¤°à¤œ-à¤šà¤®à¤• à¤•à¥‡ à¤¸à¤¾à¤¥ à¤¬à¤¾à¤°à¤¿à¤¶ à¤œà¤¾à¤°à¥€à¥¤`,
+            kn: `à²—à³à²¡à³à²—à³ à²¸à²¹à²¿à²¤ à²®à²³à³†à²¯à²¾à²—à³à²¤à³à²¤à²¿à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°Žà°²à°•à±à°Ÿà±à°°à°¾à°¨à°¿à°•à± à°µà°¸à±à°¤à±à°µà±à°²à°¨à± à°…à°¨à±â€Œà°ªà±à°²à°—à± à°šà±‡à°¯à°‚à°¡à°¿, à°¬à°¯à°Ÿ à°‰à°¨à±à°¨à°ªà±à°ªà±à°¡à± à°œà°¾à°—à±à°°à°¤à±à°¤à°—à°¾ à°‰à°‚à°¡à°‚à°¡à°¿.',
+            en: 'Unplug sensitive electronics and stay indoors.',
+            hi: 'à¤–à¥à¤²à¥‡ à¤®à¥ˆà¤¦à¤¾à¤¨ à¤®à¥‡à¤‚ à¤¨ à¤œà¤¾à¤à¤‚à¥¤',
+            kn: 'à²¬à²¯à²²à²¿à²¨à²²à³à²²à²¿ à²¨à²¿à²²à³à²²à²¬à³‡à²¡à²¿.'
+          }
+        });
+      }
+
+      if (temp >= 43 || feelsLike >= 45) {
+        hazards.push({
+          level: 'danger',
+          type: 'heatwave',
+          icon: 'ðŸ”¥',
+          title: {
+            te: 'à°¤à±€à°µà±à°° à°µà°¡à°—à°¾à°²à±à°ªà±à°² à°°à±†à°¡à± à°…à°²à°°à±à°Ÿà± (Extreme Heatwave RED ALERT)',
+            en: 'Dangerous Heatwave RED ALERT',
+            hi: 'à¤­à¥€à¤·à¤£ à¤²à¥‚ à¤•à¤¾ à¤°à¥‡à¤¡ à¤…à¤²à¤°à¥à¤Ÿ (Extreme Heat Hazard)',
+            kn: 'à²¤à³€à²µà³à²° à²¬à²¿à²¸à²¿à²² à²à²³ à²°à³†à²¡à³ à²…à²²à²°à³à²Ÿà³'
+          },
+          detail: {
+            te: `à°‰à°·à±à°£à±‹à°—à±à°°à°¤ ${temp}Â°C (à°…à°¨à°¿à°ªà°¿à°‚à°šà±‡à°¦à°¿ ${feelsLike}Â°C). à°µà°¡à°¦à±†à°¬à±à°¬ à°¤à°—à°¿à°²à±‡ à°¤à±€à°µà±à°° à°ªà±à°°à°®à°¾à°¦à°‚ à°‰à°‚à°¦à°¿.`,
+            en: `Temperature ${temp}Â°C (feels like ${feelsLike}Â°C). Critical risk of heat stroke.`,
+            hi: `à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ ${temp}Â°C (à¤…à¤¨à¥à¤­à¥‚à¤¤à¤¿ ${feelsLike}Â°C)à¥¤ à¤²à¥‚ à¤”à¤° à¤¹à¥€à¤Ÿ à¤¸à¥à¤Ÿà¥à¤°à¥‹à¤• à¤•à¤¾ à¤—à¤‚à¤­à¥€à¤° à¤–à¤¤à¤°à¤¾à¥¤`,
+            kn: `à²‰à²·à³à²£à²¾à²‚à²¶ ${temp}Â°C à²¦à²¾à²Ÿà²¿à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°®à°§à±à°¯à°¾à°¹à±à°¨à°‚ 11 à°¨à±à°‚à°¡à°¿ 4 à°—à°‚à°Ÿà°² à°µà°°à°•à± à°Žà°‚à°¡à°²à±‹à°•à°¿ à°µà±†à°³à±à°²à°µà°¦à±à°¦à±. à°“à°†à°°à±à°Žà°¸à± (ORS), à°®à°‚à°šà°¿à°¨à±€à°°à±, à°®à°œà±à°œà°¿à°— à°Žà°•à±à°•à±à°µà°—à°¾ à°¤à±€à°¸à±à°•à±‹à°‚à°¡à°¿.',
+            en: 'Avoid outdoors between 11 AM - 4 PM. Drink plenty of water and ORS to prevent heat stroke.',
+            hi: 'à¤¦à¥‹à¤ªà¤¹à¤° 11 à¤¸à¥‡ 4 à¤¬à¤œà¥‡ à¤•à¥‡ à¤¬à¥€à¤š à¤§à¥‚à¤ª à¤®à¥‡à¤‚ à¤¨à¤¿à¤•à¤²à¤¨à¥‡ à¤¸à¥‡ à¤¬à¤šà¥‡à¤‚à¥¤ à¤–à¥‚à¤¬ à¤ªà¤¾à¤¨à¥€ à¤”à¤° à¤“à¤†à¤°à¤à¤¸ à¤ªà¤¿à¤à¤‚à¥¤',
+            kn: 'à²®à²§à³à²¯à²¾à²¹à³à²¨à²¦ à²¬à²¿à²¸à²¿à²²à²¿à²—à³† à²¹à³‹à²—à²¬à³‡à²¡à²¿, à²¸à²¾à²•à²·à³à²Ÿà³ à²¨à³€à²°à³ à²•à³à²¡à²¿à²¯à²¿à²°à²¿.'
+          }
+        });
+      } else if (temp >= 40 || feelsLike >= 42) {
+        hazards.push({
+          level: 'warning',
+          type: 'heat',
+          icon: 'â˜€ï¸',
+          title: {
+            te: 'à°µà°¡à°—à°¾à°²à±à°ªà±à°² à°¹à±†à°šà±à°šà°°à°¿à°• (Heatwave Advisory)',
+            en: 'Heatwave Advisory',
+            hi: 'à¤²à¥‚ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²¬à²¿à²¸à²¿à²² à²à²³à²¦ à²Žà²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°‰à°·à±à°£à±‹à°—à±à°°à°¤ ${temp}Â°C à°¨à°®à±‹à°¦à°µà±à°¤à±‹à°‚à°¦à°¿. à°Žà°‚à°¡ à°¤à±€à°µà±à°°à°¤ à°Žà°•à±à°•à±à°µà°—à°¾ à°‰à°‚à°¦à°¿.`,
+            en: `Elevated heat levels: ${temp}Â°C.`,
+            hi: `à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ ${temp}Â°C à¤¤à¤• à¤ªà¤¹à¥à¤‚à¤š à¤šà¥à¤•à¤¾ à¤¹à¥ˆà¥¤`,
+            kn: `à²¬à²¿à²¸à²¿à²²à²¿à²¨ à²¤à³€à²µà³à²°à²¤à³† à²¹à³†à²šà³à²šà²¾à²—à²¿à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°¶à°°à±€à°°à°¾à°¨à±à°¨à°¿ à°šà°²à±à°²à°—à°¾ à°‰à°‚à°šà±à°•à±‹à°‚à°¡à°¿, à°•à°¾à°Ÿà°¨à± à°¦à±à°¸à±à°¤à±à°²à± à°§à°°à°¿à°‚à°šà°‚à°¡à°¿ à°®à°°à°¿à°¯à± à°¨à±€à°°à± à°¤à±à°°à°¾à°—à°‚à°¡à°¿.',
+            en: 'Stay in shaded areas and maintain proper hydration.',
+            hi: 'à¤¹à¤²à¥à¤•à¥‡ à¤¸à¥‚à¤¤à¥€ à¤•à¤ªà¤¡à¤¼à¥‡ à¤ªà¤¹à¤¨à¥‡à¤‚ à¤”à¤° à¤¹à¤¾à¤‡à¤¡à¥à¤°à¥‡à¤Ÿà¥‡à¤¡ à¤°à¤¹à¥‡à¤‚à¥¤',
+            kn: 'à²¹à³†à²šà³à²šà³ à²¨à³€à²°à³ à²•à³à²¡à²¿à²¯à²¿à²°à²¿.'
+          }
+        });
+      }
+
+      if (temp <= 4) {
+        hazards.push({
+          level: 'danger',
+          type: 'coldwave',
+          icon: 'ðŸ¥¶',
+          title: {
+            te: 'à°¤à±€à°µà±à°° à°šà°²à°¿à°—à°¾à°²à±à°² à°¹à±†à°šà±à°šà°°à°¿à°• (Extreme Cold Wave Warning)',
+            en: 'Severe Cold Wave Hazard',
+            hi: 'à¤­à¥€à¤·à¤£ à¤¶à¥€à¤¤à¤²à¤¹à¤° à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²¤à³€à²µà³à²° à²¶à³€à²¤à²—à²¾à²³à²¿ à²Žà²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°‰à°·à±à°£à±‹à°—à±à°°à°¤ ${temp}Â°C à°•à± à°ªà°¡à°¿à°ªà±‹à°¯à°¿à°‚à°¦à°¿. à°¹à±ˆà°ªà±‹à°¥à±†à°°à±à°®à°¿à°¯à°¾ à°ªà±à°°à°®à°¾à°¦à°‚ à°‰à°‚à°¦à°¿.`,
+            en: `Temperature plummeted to ${temp}Â°C. Risk of frostbite & hypothermia.`,
+            hi: `à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ à¤—à¤¿à¤°à¤•à¤° ${temp}Â°C à¤ªà¤° à¤† à¤—à¤¯à¤¾ à¤¹à¥ˆà¥¤`,
+            kn: `à²¤à²¾à²ªà²®à²¾à²¨ ${temp}Â°C à²—à³† à²‡à²³à²¿à²¦à²¿à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°µà±†à°šà±à°šà°¨à°¿ à°¦à±à°¸à±à°¤à±à°²à± à°§à°°à°¿à°‚à°šà°‚à°¡à°¿. à°µà±ƒà°¦à±à°§à±à°²à± à°®à°°à°¿à°¯à± à°ªà°¿à°²à±à°²à°²à± à°‡à°‚à°Ÿà±à°²à±‹à°¨à±‡ à°‰à°‚à°¡à°¾à°²à°¿.',
+            en: 'Wear multiple insulating thermal layers and limit outdoor exposure.',
+            hi: 'à¤—à¤°à¥à¤® à¤Šà¤¨à¥€ à¤•à¤ªà¤¡à¤¼à¥‡ à¤ªà¤¹à¤¨à¥‡à¤‚ à¤”à¤° à¤µà¥ƒà¤¦à¥à¤§à¥‹à¤‚ à¤µ à¤¬à¤šà¥à¤šà¥‹à¤‚ à¤•à¤¾ à¤§à¥à¤¯à¤¾à¤¨ à¤°à¤–à¥‡à¤‚à¥¤',
+            kn: 'à²¬à³†à²šà³à²šà²—à²¿à²¨ à²¬à²Ÿà³à²Ÿà³†à²—à²³à²¨à³à²¨à³ à²§à²°à²¿à²¸à²¿.'
+          }
+        });
+      }
+
+      if (weatherCode === 45 || weatherCode === 48) {
+        hazards.push({
+          level: 'warning',
+          type: 'fog',
+          icon: 'ðŸŒ«ï¸',
+          title: {
+            te: 'à°¦à°Ÿà±à°Ÿà°®à±ˆà°¨ à°ªà±Šà°—à°®à°‚à°šà± à°¹à±†à°šà±à°šà°°à°¿à°• (Dense Fog Hazard)',
+            en: 'Dense Fog & Low Visibility Hazard',
+            hi: 'à¤˜à¤¨à¥‡ à¤•à¥‹à¤¹à¤°à¥‡ à¤•à¥€ à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€',
+            kn: 'à²¦à²Ÿà³à²Ÿ à²®à²‚à²œà³ à²®à³à²¨à³à²¨à³†à²šà³à²šà²°à²¿à²•à³†'
+          },
+          detail: {
+            te: `à°¦à±ƒà°·à±à°Ÿà°¿ à°ªà°°à°¿à°§à°¿ (à°µà°¿à°œà°¿à°¬à°¿à°²à°¿à°Ÿà±€) à°šà°¾à°²à°¾ à°¤à°•à±à°•à±à°µà°—à°¾ à°‰à°‚à°¦à°¿. à°°à±‹à°¡à±à°¡à± à°®à°°à°¿à°¯à± à°µà°¿à°®à°¾à°¨ à°ªà±à°°à°¯à°¾à°£à°¾à°²à°•à± à°…à°‚à°¤à°°à°¾à°¯à°‚ à°•à°²à°—à°µà°šà±à°šà±.`,
+            en: `Near-zero visibility conditions affecting road and air transport.`,
+            hi: `à¤¦à¥ƒà¤¶à¥à¤¯à¤¤à¤¾ à¤¬à¥‡à¤¹à¤¦ à¤•à¤®à¥¤ à¤¸à¤¡à¤¼à¤• à¤µ à¤¹à¤µà¤¾à¤ˆ à¤¯à¤¾à¤¤à¤¾à¤¯à¤¾à¤¤ à¤ªà¥à¤°à¤­à¤¾à¤µà¤¿à¤¤ à¤¹à¥‹à¤¨à¥‡ à¤•à¥€ à¤¸à¤‚à¤­à¤¾à¤µà¤¨à¤¾à¥¤`,
+            kn: `à²—à³‹à²šà²°à²¤à³† à²¤à³à²‚à²¬à²¾ à²•à²¡à²¿à²®à³†à²¯à²¾à²—à²¿à²¦à³†.`
+          },
+          advisory: {
+            te: 'à°µà°¾à°¹à°¨à°¦à°¾à°°à±à°²à± à°«à°¾à°—à± à°²à±ˆà°Ÿà±à°²à± à°‰à°ªà°¯à±‹à°—à°¿à°‚à°šà°‚à°¡à°¿ à°®à°°à°¿à°¯à± à°µà±‡à°—à°¾à°¨à±à°¨à°¿ à°¨à°¿à°¯à°‚à°¤à±à°°à°¿à°‚à°šà°‚à°¡à°¿.',
+            en: 'Use fog lights and drive at reduced speeds with low-beam headlights.',
+            hi: 'à¤µà¤¾à¤¹à¤¨ à¤šà¤²à¤¾à¤¤à¥‡ à¤¸à¤®à¤¯ à¤«à¥‰à¤— à¤²à¤¾à¤‡à¤Ÿ à¤•à¤¾ à¤‰à¤ªà¤¯à¥‹à¤— à¤•à¤°à¥‡à¤‚ à¤”à¤° à¤—à¤¤à¤¿ à¤§à¥€à¤®à¥€ à¤°à¤–à¥‡à¤‚à¥¤',
+            kn: 'à²µà²¾à²¹à²¨ à²šà²²à²¾à²¯à²¿à²¸à³à²µà²¾à²— à²Žà²šà³à²šà²°à²µà²¿à²°à²²à²¿.'
+          }
+        });
+      }
+
+      return hazards;
+    }
+
+    function detectLanguage(text) {
+      if (!text) return currentLang;
+      if (/[\u0C00-\u0C7F]/.test(text)) return 'te';
+      if (/[\u0900-\u097F]/.test(text)) return 'hi';
+      if (/[\u0C80-\u0CFF]/.test(text)) return 'kn';
+
+      const lower = text.toLowerCase();
+      if (/\b(ela\s+undi|ela\s+undhi|eela\s+undi|varsham|vaathavaranam|vatavaranam|lo\s+weather|lo\s+ela|cheppandi|cheppu|yela\s+undi|vipathu|tufaanu|varadalu)\b/i.test(lower)) {
+        return 'te';
+      }
+      if (/\b(kaisa\s+hai|kaisi\s+hai|mausam|kya\s+hai|bataye|batao|barish|tapman|aapda|toofan)\b/i.test(lower)) {
+        return 'hi';
+      }
+      if (/\b(hegide|hegidhe|havamana|thilisi|tilisi|male\s+barutha|nalli\s+weather|vipattu)\b/i.test(lower)) {
+        return 'kn';
+      }
+      return currentLang;
+    }
+
+    function setLanguage(lang, updateBubble = false) {
+      currentLang = lang;
+      langSelect.value = lang;
+      const dict = I18N[lang] || I18N.en;
+
+      headerTagline.textContent = dict.tagline;
+      ttsLabelText.textContent = dict.readAloud;
+      quickCheckLabel.textContent = dict.quickCheck;
+      queryInput.placeholder = dict.placeholder;
+
+      renderQuickChips(dict);
+
+      if (updateBubble && welcomeMessageBubble) {
+        welcomeMessageBubble.innerHTML = dict.welcomeHtml;
+      }
+
+      if (recognition) {
+        recognition.lang = dict.code;
+      }
+    }
+
+    function renderQuickChips(dict) {
+      chipsContainer.innerHTML = '';
+
+      const locBtn = document.createElement('button');
+      locBtn.className = 'chip-btn';
+      locBtn.textContent = dict.currentLocation;
+      locBtn.onclick = useCurrentLocation;
+      chipsContainer.appendChild(locBtn);
+
+      const disasterBtn = document.createElement('button');
+      disasterBtn.className = 'chip-btn disaster-chip';
+      disasterBtn.textContent = dict.disasterRadarChip;
+      disasterBtn.onclick = checkCurrentDisasterRisk;
+      chipsContainer.appendChild(disasterBtn);
+
+      dict.cities.forEach(city => {
+        const btn = document.createElement('button');
+        btn.className = 'chip-btn';
+        btn.textContent = city.label;
+        btn.onclick = () => sendQuickQuery(city.query);
+        chipsContainer.appendChild(btn);
+      });
+    }
+
+    function scrollBottom() {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    function addMessage(role, contentHtml) {
+      const row = document.createElement('div');
+      row.className = `msg-row ${role}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${role}`;
+      bubble.innerHTML = contentHtml;
+
+      row.appendChild(bubble);
+      chatContainer.appendChild(row);
+      scrollBottom();
+      return bubble;
+    }
+
+    function showThinking() {
+      const row = document.createElement('div');
+      row.className = 'msg-row assistant';
+      row.id = 'thinkingRow';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble assistant thinking-bubble';
+      bubble.innerHTML = '<span></span><span></span><span></span>';
+
+      row.appendChild(bubble);
+      chatContainer.appendChild(row);
+      scrollBottom();
+    }
+
+    function hideThinking() {
+      const row = document.getElementById('thinkingRow');
+      if (row) row.remove();
+    }
+
+    function speak(text, lang = currentLang) {
+      if (!('speechSynthesis' in window) || !ttsCheckbox.checked) return;
+      window.speechSynthesis.cancel();
+
+      const cleanText = text.replace(/<[^>]*>?/gm, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      const targetCode = I18N[lang] ? I18N[lang].code : 'en-IN';
+      utterance.lang = targetCode;
+
+      const voices = window.speechSynthesis.getVoices();
+      const matchedVoice = voices.find(v =>
+        v.lang && (
+          v.lang.toLowerCase() === targetCode.toLowerCase() ||
+          v.lang.toLowerCase().replace('_', '-') === targetCode.toLowerCase() ||
+          v.lang.toLowerCase().startsWith(lang)
+        )
+      );
+
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function extractLocation(query) {
+      let cleaned = query.replace(/[?.,!à¥¤]/g, ' ').trim();
+
+      for (const [nativeName, engName] of Object.entries(cityTransliterations)) {
+        if (cleaned.includes(nativeName)) {
+          return { original: nativeName, geocodeName: engName };
+        }
+      }
+
+      const teluguSuffixPattern = /(?:à°²à±‹|à°²à±‹à°¨à°¿|à°²à±‹à°¨|à°¨à°‚à°¦à±|à°•à°¿|à°•à±|à°¨à±à°‚à°¡à°¿)\b/g;
+
+      const match = cleaned.match(/(?:in|for|at|around|of|à¤®à¥‡à¤‚|à¤²à¥‹|à°¨à°‚à°¦à±|à²¨à²²à³à²²à²¿|à²¯|à²¯à²¾à²¦)\s+([A-Za-z\u0900-\u097F\u0C00-\u0C7F\u0C80-\u0CFF\s]+?)(?:\s+today|\s+now|\s+tomorrow|\s+right now|$)/i);
+      if (match && match[1]) {
+        let found = match[1].replace(teluguSuffixPattern, '').trim();
+        return { original: found, geocodeName: cityTransliterations[found] || found };
+      }
+
+      const stopWords = [
+        'what', 'is', 'the', 'weather', 'like', 'how', 'today', 'now', 'forecast', 'tell', 'me', 'current', 'temperature', 'conditions', 'please', 'check', 'disaster', 'alert', 'risk', 'cyclone', 'flood',
+        'à°µà°¾à°¤à°¾à°µà°°à°£à°‚', 'à°µà°¾à°¤à°¾à°µà°°à°£', 'à°Žà°²à°¾', 'à°Žà°²à°¾à°—à±à°‚à°¦à°¿', 'à°Žà°²à°¾à°µà±à°‚à°¦à°¿', 'à°‰à°‚à°¦à°¿', 'à°‰à°‚à°Ÿà°¦à°¿', 'à°ˆà°°à±‹à°œà±', 'à°ˆà°°à±‹à°œà±‡', 'à°°à±‡à°ªà±', 'à°‡à°ªà±à°ªà±à°¡à±', 'à°‰à°·à±à°£à±‹à°—à±à°°à°¤', 'à°Žà°‚à°¤', 'à°šà±†à°ªà±à°ªà°‚à°¡à°¿', 'à°šà±†à°ªà±à°ªà±', 'à°µà°°à±à°·à°‚', 'à°ªà°¡à±à°¤à±à°‚à°¦à°¾', 'à°ªà°¡à±à°¤à°¦à°¾', 'à°Žà°‚à°¡', 'à°Žà°•à±à°•à±à°µà°—à°¾', 'à°šà°²à±à°²à°—à°¾', 'à°µà±‡à°¡à°¿à°—à°¾', 'à°¦à°¯à°šà±‡à°¸à°¿', 'à°µà°¿à°µà°°à°¾à°²à±', 'à°¤à±†à°²à±à°¸à±à°•à±‹à°µà°¾à°²à°¿', 'à°šà±†à°ªà±à°ªà°—à°²à°°à°¾', 'à°µà°¿à°ªà°¤à±à°¤à±', 'à°®à±à°ªà±à°ªà±', 'à°¤à±à°«à°¾à°¨à±', 'à°µà°°à°¦', 'à°¹à±†à°šà±à°šà°°à°¿à°•',
+        'à¤®à¥Œà¤¸à¤®', 'à¤•à¥ˆà¤¸à¤¾', 'à¤¹à¥ˆ', 'à¤†à¤œ', 'à¤•à¤¾', 'à¤•à¥‡', 'à¤¤à¤¾à¤ªà¤®à¤¾à¤¨', 'à¤¬à¤¤à¤¾à¤“', 'à¤¬à¤¤à¤¾à¤‡à¤', 'à¤•à¥ˆà¤¸à¥€', 'à¤¹à¥‹à¤—à¥€', 'à¤¬à¤¾à¤°à¤¿à¤¶', 'à¤†à¤ªà¤¦à¤¾', 'à¤–à¤¤à¤°à¤¾', 'à¤šà¤•à¥à¤°à¤µà¤¾à¤¤', 'à¤¬à¤¾à¤¢à¤¼',
+        'à²¹à²µà²¾à²®à²¾à²¨', 'à²¹à³‡à²—à²¿à²¦à³†', 'à²‡à²‚à²¦à³', 'à²¤à²¾à²ªà²®à²¾à²¨', 'à²¤à²¿à²³à²¿à²¸à²¿', 'à²Žà²·à³à²Ÿà³', 'à²®à²³à³†', 'à²¬à²°à³à²¤à³à²¤à²¿à²¦à³†à²¯à³‡', 'à²µà²¿à²ªà²¤à³à²¤à³', 'à²…à²ªà²¾à²¯'
+      ];
+
+      const words = cleaned.split(/\s+/).filter(w => {
+        const root = w.replace(teluguSuffixPattern, '').trim().toLowerCase();
+        return !stopWords.includes(root) && !stopWords.includes(w.toLowerCase());
+      });
+
+      if (words.length > 0) {
+        let candidate = words.join(' ').replace(teluguSuffixPattern, '').trim();
+        return { original: candidate, geocodeName: cityTransliterations[candidate] || candidate };
+      }
+
+      return null;
+    }
+
+    async function fetchRealWeather(locationObj, lang = currentLang) {
+      const { original, geocodeName } = locationObj;
+      let lat = null, lon = null, placeDisplayName = original;
+
+      try {
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(geocodeName)}&count=1&language=en&format=json`;
+        const geoRes = await fetch(geoUrl);
+        if (geoRes.ok) {
+          const geoData = await geoRes.json();
+          if (geoData.results && geoData.results.length > 0) {
+            const p = geoData.results[0];
+            lat = p.latitude;
+            lon = p.longitude;
+            placeDisplayName = [original, p.country].filter(Boolean).join(', ');
+          }
+        }
+      } catch (e) {
+        console.warn('Geocoding fallback:', e);
+      }
+
+      if (!lat || !lon) {
+        try {
+          const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(original)}&format=json&limit=1`;
+          const nomRes = await fetch(nomUrl, { headers: { 'Accept-Language': `${lang},en` } });
+          if (nomRes.ok) {
+            const nomData = await nomRes.json();
+            if (nomData && nomData.length > 0) {
+              lat = parseFloat(nomData[0].lat);
+              lon = parseFloat(nomData[0].lon);
+              placeDisplayName = nomData[0].name || original;
+            }
+          }
+        } catch (e) {
+          console.warn('Nominatim error:', e);
+        }
+      }
+
+      if (!lat || !lon) {
+        return { error: 'not_found', location: original };
+      }
+
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
+      const weatherRes = await fetch(weatherUrl);
+      if (!weatherRes.ok) throw new Error('Weather service unavailable');
+      const weatherData = await weatherRes.json();
+
+      const current = weatherData.current;
+      const daily = weatherData.daily;
+      const code = current.weather_code;
+      const codeInfo = weatherCodesI18n[code] || { te: 'à°ªà°¾à°•à±à°·à°¿à°•à°‚à°—à°¾ à°®à±‡à°˜à°¾à°µà±ƒà°¤à°‚', en: 'Partly cloudy', hi: 'à¤¹à¤²à¥à¤•à¥‡ à¤¬à¤¾à¤¦à¤²', kn: 'à²­à²¾à²—à²¶à²ƒ à²®à³‹à²¡ à²•à²µà²¿à²¦à²¿à²¦à³†', icon: 'â›…' };
+
+      return {
+        location: placeDisplayName,
+        temp: Math.round(current.temperature_2m),
+        feelsLike: Math.round(current.apparent_temperature),
+        humidity: current.relative_humidity_2m,
+        wind: Math.round(current.wind_speed_10m),
+        precipitation: current.precipitation,
+        weatherCode: code,
+        weatherDesc: codeInfo[lang] || codeInfo.en,
+        weatherIcon: codeInfo.icon,
+        tempMax: daily && daily.temperature_2m_max ? Math.round(daily.temperature_2m_max[0]) : null,
+        tempMin: daily && daily.temperature_2m_min ? Math.round(daily.temperature_2m_min[0]) : null,
+      };
+    }
+
+    function generateConversationalReply(data, lang = currentLang) {
+      const dict = I18N[lang] || I18N.en;
+
+      if (data.error === 'not_found') {
+        return {
+          speechText: dict.notFoundSpeech(data.location),
+          htmlText: dict.notFoundHtml(data.location)
+        };
+      }
+
+      const { location, temp, feelsLike, humidity, wind, weatherDesc, weatherIcon, tempMax, tempMin } = data;
+      const cardLabels = dict.cardLabels;
+
+      const disasters = detectDisasters(data);
+
+      let htmlText = '';
+      let speechText = '';
+      let disasterAlertSpeech = '';
+
+      if (lang === 'te') {
+        let tempFeel = 'à°¹à°¾à°¯à°¿à°—à°¾';
+        if (temp > 35) tempFeel = 'à°šà°¾à°²à°¾ à°µà±‡à°¡à°¿à°—à°¾';
+        else if (temp > 28) tempFeel = 'à°µà±†à°šà±à°šà°—à°¾';
+        else if (temp < 15) tempFeel = 'à°šà°²à±à°²à°—à°¾';
+
+        const s1 = `à°ªà±à°°à°¸à±à°¤à±à°¤à°‚ <strong>${location}</strong> à°²à±‹ ${weatherIcon} <strong>${weatherDesc}</strong> à°—à°¾ à°‰à°‚à°¦à°¿ à°®à°°à°¿à°¯à± à°‰à°·à±à°£à±‹à°—à±à°°à°¤ <strong>${temp}Â°C</strong> à°¨à°®à±‹à°¦à°µà±à°¤à±‹à°‚à°¦à°¿.`;
+        const s2 = `à°‡à°¦à°¿ ${feelsLike}Â°C à°²à°¾ à°…à°¨à°¿à°ªà°¿à°¸à±à°¤à±à°‚à°¦à°¿, à°—à°¾à°²à°¿ à°µà±‡à°—à°‚ à°—à°‚à°Ÿà°•à± ${wind} à°•à°¿.à°®à±€ à°®à°°à°¿à°¯à± à°¤à±‡à°® ${humidity}% à°—à°¾ à°‰à°‚à°¦à°¿.`;
+        const s3 = (tempMax !== null && tempMin !== null)
+          ? `à°¨à±‡à°Ÿà°¿ à°—à°°à°¿à°·à±à°Ÿ à°‰à°·à±à°£à±‹à°—à±à°°à°¤ ${tempMax}Â°C à°®à°°à°¿à°¯à± à°•à°¨à°¿à°·à±à°Ÿ à°‰à°·à±à°£à±‹à°—à±à°°à°¤ ${tempMin}Â°C à°—à°¾ à°‰à°‚à°¡à±‡ à°…à°µà°•à°¾à°¶à°‚ à°‰à°‚à°¦à°¿.`
+          : `à°®à±€ à°°à±‹à°œà± à°†à°¨à°‚à°¦à°‚à°—à°¾ à°®à°°à°¿à°¯à± à°‰à°²à±à°²à°¾à°¸à°‚à°—à°¾ à°—à°¡à°µà°¾à°²à°¨à°¿ à°•à±‹à°°à±à°•à±à°‚à°Ÿà±à°¨à±à°¨à°¾à°®à±!`;
+
+        htmlText = `${s1}<br><br>${s2} ${s3}`;
+        speechText = `à°ªà±à°°à°¸à±à°¤à±à°¤à°‚ ${location} à°²à±‹ ${weatherDesc} à°‰à°‚à°¦à°¿ à°®à°°à°¿à°¯à± à°‰à°·à±à°£à±‹à°—à±à°°à°¤ ${temp} à°¡à°¿à°—à±à°°à±€à°² à°¸à±†à°²à±à°¸à°¿à°¯à°¸à± à°—à°¾ à°‰à°‚à°¦à°¿. à°‡à°¦à°¿ ${feelsLike} à°¡à°¿à°—à±à°°à±€à°²à°²à°¾ à°…à°¨à°¿à°ªà°¿à°¸à±à°¤à±à°‚à°¦à°¿, à°—à°¾à°²à°¿ à°µà±‡à°—à°‚ à°—à°‚à°Ÿà°•à± ${wind} à°•à°¿à°²à±‹à°®à±€à°Ÿà°°à±à°²à± à°®à°°à°¿à°¯à± à°¤à±‡à°® ${humidity} à°¶à°¾à°¤à°‚ à°—à°¾ à°‰à°‚à°¦à°¿.`;
+      } else if (lang === 'hi') {
+        let tempFeel = 'à¤¸à¥à¤¹à¤¾à¤µà¤¨à¤¾';
+        if (temp > 35) tempFeel = 'à¤•à¤¾à¤«à¥€ à¤—à¤°à¥à¤®';
+        else if (temp > 28) tempFeel = 'à¤—à¤°à¤®';
+        else if (temp < 10) tempFeel = 'à¤•à¤¾à¤«à¥€ à¤ à¤‚à¤¡à¤¾';
+
+        const s1 = `à¤‡à¤¸ à¤¸à¤®à¤¯ <strong>${location}</strong> à¤®à¥‡à¤‚ ${weatherIcon} <strong>${weatherDesc}</strong> à¤¹à¥ˆ à¤”à¤° à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ <strong>${temp}Â°C</strong> à¤¹à¥ˆà¥¤`;
+        const s2 = `à¤¯à¤¹ à¤²à¤—à¤­à¤— ${feelsLike}Â°C à¤œà¥ˆà¤¸à¤¾ à¤®à¤¹à¤¸à¥‚à¤¸ à¤¹à¥‹ à¤°à¤¹à¤¾ à¤¹à¥ˆ, à¤œà¤¿à¤¸à¤®à¥‡à¤‚ à¤¹à¤µà¤¾ à¤•à¥€ à¤—à¤¤à¤¿ ${wind} à¤•à¤¿à¤®à¥€/à¤˜à¤‚à¤Ÿà¤¾ à¤”à¤° à¤¨à¤®à¥€ ${humidity}% à¤¹à¥ˆà¥¤`;
+        const s3 = (tempMax !== null && tempMin !== null)
+          ? `à¤†à¤œ à¤•à¤¾ à¤…à¤§à¤¿à¤•à¤¤à¤® à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ ${tempMax}Â°C à¤”à¤° à¤¨à¥à¤¯à¥‚à¤¨à¤¤à¤® à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ ${tempMin}Â°C à¤°à¤¹à¤¨à¥‡ à¤•à¥€ à¤¸à¤‚à¤­à¤¾à¤µà¤¨à¤¾ à¤¹à¥ˆà¥¤`
+          : `à¤†à¤ªà¤•à¤¾ à¤¦à¤¿à¤¨ à¤®à¤‚à¤—à¤²à¤®à¤¯ à¤”à¤° à¤¸à¥à¤–à¤¦ à¤°à¤¹à¥‡!`;
+
+        htmlText = `${s1}<br><br>${s2} ${s3}`;
+        speechText = `à¤‡à¤¸ à¤¸à¤®à¤¯ ${location} à¤®à¥‡à¤‚ ${weatherDesc} à¤¹à¥ˆ à¤”à¤° à¤¤à¤¾à¤ªà¤®à¤¾à¤¨ ${temp} à¤¡à¤¿à¤—à¥à¤°à¥€ à¤¸à¥‡à¤²à¥à¤¸à¤¿à¤¯à¤¸ à¤¹à¥ˆà¥¤ à¤¯à¤¹ ${feelsLike} à¤¡à¤¿à¤—à¥à¤°à¥€ à¤œà¥ˆà¤¸à¤¾ à¤®à¤¹à¤¸à¥‚à¤¸ à¤¹à¥‹ à¤°à¤¹à¤¾ à¤¹à¥ˆà¥¤`;
+      } else if (lang === 'kn') {
+        let tempFeel = 'à²¹à²¿à²¤à²•à²°à²µà²¾à²—à²¿à²¦à³†';
+        if (temp > 35) tempFeel = 'à²¬à²¹à²³ à²¬à²¿à²¸à²¿à²¯à²¾à²—à²¿à²¦à³†';
+        else if (temp > 28) tempFeel = 'à²¬à³†à²šà³à²šà²—à²¿à²¦à³†';
+        else if (temp < 15) tempFeel = 'à²¸à²¾à²•à²·à³à²Ÿà³ à²¤à²‚à²ªà²¾à²—à²¿à²¦à³†';
+
+        const s1 = `à²ªà³à²°à²¸à³à²¤à³à²¤ <strong>${location}</strong> à²¨à²²à³à²²à²¿ ${weatherIcon} <strong>${weatherDesc}</strong> à²‡à²¦à³à²¦à³, à²¤à²¾à²ªà²®à²¾à²¨ <strong>${temp}Â°C</strong> à²¦à²¾à²–à²²à²¾à²—à²¿à²¦à³†.`;
+        const s2 = `à²‡à²¦à³ à²¸à³à²®à²¾à²°à³ ${feelsLike}Â°C à²¨à²·à³à²Ÿà³ à²…à²¨à³à²­à²µà²µà²¾à²—à³à²¤à³à²¤à²¿à²¦à³à²¦à³, à²—à²¾à²³à²¿à²¯ à²µà³‡à²— à²—à²‚à²Ÿà³†à²—à³† ${wind} à²•à²¿.à²®à³€ à²®à²¤à³à²¤à³ à²¤à³‡à²µà²¾à²‚à²¶ ${humidity}% à²‡à²¦à³†.`;
+        const s3 = (tempMax !== null && tempMin !== null)
+          ? `à²‡à²‚à²¦à²¿à²¨ à²—à²°à²¿à²·à³à²  à²¤à²¾à²ªà²®à²¾à²¨ ${tempMax}Â°C à²®à²¤à³à²¤à³ à²•à²¨à²¿à²·à³à²  à²¤à²¾à²ªà²®à²¾à²¨ ${tempMin}Â°C à²†à²—à²¿à²°à²²à²¿à²¦à³† à²Žà²‚à²¦à³ à²¨à²¿à²°à³€à²•à³à²·à²¿à²¸à²²à²¾à²—à²¿à²¦à³†.`
+          : `à²¨à²¿à²®à³à²® à²¦à²¿à²¨à²µà³ à²¸à³à²–à²•à²°à²µà²¾à²—à²¿à²°à²²à²¿!`;
+
+        htmlText = `${s1}<br><br>${s2} ${s3}`;
+        speechText = `à²ªà³à²°à²¸à³à²¤à³à²¤ ${location} à²¨à²²à³à²²à²¿ ${weatherDesc} à²‡à²¦à³à²¦à³, à²¤à²¾à²ªà²®à²¾à²¨ ${temp} à²¡à²¿à²—à³à²°à²¿ à²¸à³†à²²à³à²¸à²¿à²¯à²¸à³ à²†à²—à²¿à²¦à³†.`;
+      } else {
+        let tempFeel = 'pleasantly comfortable';
+        if (temp > 35) tempFeel = 'quite hot';
+        else if (temp > 28) tempFeel = 'warm';
+        else if (temp < 10) tempFeel = 'quite chilly';
+        else if (temp < 0) tempFeel = 'freezing cold';
+
+        const s1 = `Right now in <strong>${location}</strong>, it is ${weatherIcon} <strong>${weatherDesc.toLowerCase()}</strong> with a temperature of <strong>${temp}Â°C</strong>.`;
+        const s2 = `It feels like ${feelsLike}Â°C, accompanied by winds at ${wind} km/h and humidity around ${humidity}%.`;
+        const s3 = (tempMax !== null && tempMin !== null)
+          ? `Expect a daytime high of ${tempMax}Â°C and an overnight low of ${tempMin}Â°C.`
+          : `Stay comfortable and have a wonderful day ahead!`;
+
+        htmlText = `${s1}<br><br>${s2} ${s3}`;
+        speechText = `Right now in ${location}, it is ${weatherDesc.toLowerCase()} with a temperature of ${temp} degrees Celsius. It feels like ${feelsLike} degrees with winds at ${wind} kilometers per hour.`;
+      }
+
+      const cardHtml = `
+        <div class="weather-card">
+          <div class="weather-stat">
+            <span class="weather-stat-label">${cardLabels.condition}</span>
+            <span class="weather-stat-val">${weatherIcon} ${weatherDesc}</span>
+          </div>
+          <div class="weather-stat">
+            <span class="weather-stat-label">${cardLabels.temperature}</span>
+            <span class="weather-stat-val">${temp}Â°C</span>
+          </div>
+          <div class="weather-stat">
+            <span class="weather-stat-label">${cardLabels.feelsLike}</span>
+            <span class="weather-stat-val">${feelsLike}Â°C</span>
+          </div>
+          <div class="weather-stat">
+            <span class="weather-stat-label">${cardLabels.windSpeed}</span>
+            <span class="weather-stat-val">${wind} km/h</span>
+          </div>
+          <div class="weather-stat">
+            <span class="weather-stat-label">${cardLabels.humidity}</span>
+            <span class="weather-stat-val">${humidity}%</span>
+          </div>
+          ${tempMax !== null ? `
+          <div class="weather-stat">
+            <span class="weather-stat-label">${cardLabels.highLow}</span>
+            <span class="weather-stat-val">${tempMax}Â° / ${tempMin}Â°</span>
+          </div>` : ''}
+        </div>
+      `;
+
+      let disasterHtml = '';
+      if (disasters.length > 0) {
+        disasters.forEach(d => {
+          const alertTagText = d.level === 'danger'
+            ? (lang === 'te' ? 'à°¤à±€à°µà±à°° à°µà°¿à°ªà°¤à±à°¤à± à°°à±†à°¡à± à°…à°²à°°à±à°Ÿà± (RED ALERT)' : lang === 'hi' ? 'à¤°à¥‡à¤¡ à¤…à¤²à¤°à¥à¤Ÿ (RED ALERT)' : lang === 'kn' ? 'à²°à³†à²¡à³ à²…à²²à²°à³à²Ÿà³ (RED ALERT)' : 'RED ALERT HAZARD')
+            : (lang === 'te' ? 'à°œà°¾à°—à±à°°à°¤à±à°¤ à°¹à±†à°šà±à°šà°°à°¿à°• (CAUTION)' : lang === 'hi' ? 'à¤šà¥‡à¤¤à¤¾à¤µà¤¨à¥€ (WARNING)' : lang === 'kn' ? 'à²Žà²šà³à²šà²°à²¿à²•à³† (CAUTION)' : 'WEATHER ADVISORY');
+
+          disasterHtml += `
+            <div class="disaster-alert-card ${d.level}">
+              <div class="disaster-header">
+                <span class="disaster-header-icon">${d.icon}</span>
+                <div class="disaster-title-wrap">
+                  <span class="disaster-tag">${alertTagText}</span>
+                  <span class="disaster-title">${d.title[lang] || d.title.en}</span>
+                </div>
+              </div>
+              <div class="disaster-details">
+                <strong>à°®à±à°ªà±à°ªà± à°µà°¿à°µà°°à°£ (Details):</strong> ${d.detail[lang] || d.detail.en}
+              </div>
+              <div class="disaster-advisory">
+                <span>ðŸ›¡ï¸</span>
+                <span><strong>à°°à°•à±à°·à°£ à°¸à±‚à°šà°¨ (Advisory):</strong> ${d.advisory[lang] || d.advisory.en}</span>
+              </div>
+            </div>
+          `;
+
+          disasterAlertSpeech += ` ${d.level === 'danger' ? 'à°¹à±†à°šà±à°šà°°à°¿à°•!' : 'à°®à±à°‚à°¦à°¸à±à°¤à± à°¸à°®à°¾à°šà°¾à°°à°‚:'} ${d.title[lang] || d.title.en}. ${d.advisory[lang] || d.advisory.en}`;
+        });
+      } else {
+        const safeText = {
+          te: 'à°ªà±à°°à°¸à±à°¤à±à°¤à°‚ à°Žà°²à°¾à°‚à°Ÿà°¿ à°µà°¿à°ªà°¤à±à°¤à± à°®à±à°ªà±à°ªà± à°²à±‡à°¦à±. à°µà°¾à°¤à°¾à°µà°°à°£à°‚ à°¸à°¾à°§à°¾à°°à°£à°‚à°—à°¾ à°®à°°à°¿à°¯à± à°¸à±à°°à°•à±à°·à°¿à°¤à°‚à°—à°¾ à°‰à°‚à°¦à°¿.',
+          en: 'No disaster risks detected. Weather conditions are safe and normal.',
+          hi: 'à¤«à¤¿à¤²à¤¹à¤¾à¤² à¤•à¥‹à¤ˆ à¤ªà¥à¤°à¤¾à¤•à¥ƒà¤¤à¤¿à¤• à¤†à¤ªà¤¦à¤¾ à¤•à¤¾ à¤–à¤¤à¤°à¤¾ à¤¨à¤¹à¥€à¤‚ à¤¹à¥ˆà¥¤ à¤®à¥Œà¤¸à¤® à¤¸à¥à¤°à¤•à¥à¤·à¤¿à¤¤ à¤”à¤° à¤¸à¤¾à¤®à¤¾à¤¨à¥à¤¯ à¤¹à¥ˆà¥¤',
+          kn: 'à²ªà³à²°à²¸à³à²¤à³à²¤ à²¯à²¾à²µà³à²¦à³‡ à²µà²¿à²ªà²¤à³à²¤à²¿à²¨ à²…à²ªà²¾à²¯à²µà²¿à²²à³à²². à²¹à²µà²¾à²®à²¾à²¨ à²¸à³à²°à²•à³à²·à²¿à²¤à²µà²¾à²—à²¿à²¦à³†.'
+        }[lang] || 'No disaster risks detected.';
+
+        disasterHtml = `
+          <div class="disaster-alert-card safe">
+            <span style="font-size: 1.4rem;">ðŸ›¡ï¸</span>
+            <span><strong>à°µà°¿à°ªà°¤à±à°¤à± à°¸à±à°¥à°¿à°¤à°¿ (Disaster Status):</strong> ${safeText}</span>
+          </div>
+        `;
+      }
+
+      return {
+        speechText: speechText + disasterAlertSpeech,
+        htmlText: `${htmlText}${cardHtml}${disasterHtml}`
+      };
+    }
+
+    async function handleUserQuery(query) {
+      if (!query || !query.trim()) return;
+      const cleanQuery = query.trim();
+
+      const targetLang = detectLanguage(cleanQuery);
+      if (targetLang !== currentLang) {
+        setLanguage(targetLang);
+      }
+
+      const dict = I18N[targetLang] || I18N.en;
+
+      addMessage('user', cleanQuery);
+      queryInput.value = '';
+      queryInput.disabled = true;
+      sendButton.disabled = true;
+      micButton.disabled = true;
+      statusMsg.textContent = dict.checkingWeather;
+
+      showThinking();
+
+      try {
+        const lower = cleanQuery.toLowerCase();
+        const greetings = ['hi', 'hello', 'hey', 'à°¨à°®à°¸à±à°•à°¾à°°à°‚', 'à°¨à°®à°¸à±à°¤à±‡', 'à°¬à°¾à°—à±à°¨à±à°¨à°¾à°°à°¾', 'à°¹à°²à±‹', 'à¤¨à¤®à¤¸à¥à¤¤à¥‡', 'à¤¨à¤®à¤¸à¥à¤•à¤¾à¤°', 'à²¹à²²à³‹', 'à²¨à²®à²¸à³à²•à²¾à²°'];
+        if (greetings.some(g => lower.startsWith(g) || lower === g) && !cleanQuery.includes('weather') && !cleanQuery.includes('à°µà°¾à°¤à°¾à°µà°°à°£à°‚') && !cleanQuery.includes('à°µà°¿à°ªà°¤à±à°¤à±') && !cleanQuery.includes('à°¤à±à°«à°¾à°¨à±') && !cleanQuery.includes('disaster')) {
+          hideThinking();
+          addMessage('assistant', dict.greetingHtml);
+          speak(dict.greetingSpeech, targetLang);
+          statusMsg.textContent = '';
+          return;
+        }
+
+        const locObj = extractLocation(cleanQuery);
+        if (!locObj || !locObj.original) {
+          hideThinking();
+          addMessage('assistant', dict.askLocationHtml);
+          speak(dict.askLocationSpeech, targetLang);
+          statusMsg.textContent = '';
+          return;
+        }
+
+        const weatherData = await fetchRealWeather(locObj, targetLang);
+        hideThinking();
+        const reply = generateConversationalReply(weatherData, targetLang);
+        addMessage('assistant', reply.htmlText);
+        speak(reply.speechText, targetLang);
+        statusMsg.textContent = '';
+      } catch (err) {
+        hideThinking();
+        console.error('Weather error:', err);
+        const errMsg = targetLang === 'te'
+          ? 'âš ï¸ à°•à±à°·à°®à°¿à°‚à°šà°‚à°¡à°¿, à°¤à°¾à°œà°¾ à°µà°¾à°¤à°¾à°µà°°à°£ à°µà°¿à°µà°°à°¾à°²à°¨à± à°ªà±Šà°‚à°¦à°²à±‡à°•à°ªà±‹à°¯à°¾à°®à±. à°¦à°¯à°šà±‡à°¸à°¿ à°®à±€ à°‡à°‚à°Ÿà°°à±à°¨à±†à°Ÿà± à°•à°¨à±†à°•à±à°·à°¨à±â€Œà°¨à°¿ à°ªà°°à°¿à°¶à±€à°²à°¿à°‚à°šà°‚à°¡à°¿.'
+          : 'âš ï¸ Sorry, unable to retrieve weather data right now. Please check your internet connection.';
+        addMessage('assistant', errMsg);
+        statusMsg.textContent = '';
+      } finally {
+        queryInput.disabled = false;
+        sendButton.disabled = false;
+        micButton.disabled = false;
+        queryInput.focus();
+      }
+    }
+
+    function sendQuickQuery(text) {
+      handleUserQuery(text);
+    }
+
+    function checkCurrentDisasterRisk() {
+      useCurrentLocation(true);
+    }
+
+    function useCurrentLocation(isDisasterCheck = false) {
+      const dict = I18N[currentLang] || I18N.en;
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+      statusMsg.textContent = dict.checkingWeather;
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          showThinking();
+          try {
+            const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
+            const weatherRes = await fetch(weatherUrl);
+            const weatherData = await weatherRes.json();
+            const current = weatherData.current;
+            const daily = weatherData.daily;
+            const code = current.weather_code;
+            const codeInfo = weatherCodesI18n[code] || { te: 'à°ªà°¾à°•à±à°·à°¿à°•à°‚à°—à°¾ à°®à±‡à°˜à°¾à°µà±ƒà°¤à°‚', en: 'Partly cloudy', hi: 'à¤¹à¤²à¥à¤•à¥‡ à¤¬à¤¾à¤¦à¤²', kn: 'à²­à²¾à²—à²¶à²ƒ à²®à³‹à²¡ à²•à²µà²¿à²¦à²¿à²¦à³†', icon: 'â›…' };
+
+            const locTitle = {
+              te: 'à°®à±€ à°ªà±à°°à°¸à±à°¤à±à°¤ à°ªà±à°°à°¾à°‚à°¤à°‚',
+              en: 'Your Current Location',
+              hi: 'à¤†à¤ªà¤•à¤¾ à¤µà¤°à¥à¤¤à¤®à¤¾à¤¨ à¤¸à¥à¤¥à¤¾à¤¨',
+              kn: 'à²¨à²¿à²®à³à²® à²ªà³à²°à²¸à³à²¤à³à²¤ à²¸à³à²¥à²³'
+            }[currentLang] || 'Your Current Location';
+
+            const result = {
+              location: locTitle,
+              temp: Math.round(current.temperature_2m),
+              feelsLike: Math.round(current.apparent_temperature),
+              humidity: current.relative_humidity_2m,
+              wind: Math.round(current.wind_speed_10m),
+              precipitation: current.precipitation,
+              weatherCode: code,
+              weatherDesc: codeInfo[currentLang] || codeInfo.en,
+              weatherIcon: codeInfo.icon,
+              tempMax: daily && daily.temperature_2m_max ? Math.round(daily.temperature_2m_max[0]) : null,
+              tempMin: daily && daily.temperature_2m_min ? Math.round(daily.temperature_2m_min[0]) : null,
+            };
+
+            hideThinking();
+            addMessage('user', isDisasterCheck ? `ðŸš¨ ${locTitle} à°µà°¿à°ªà°¤à±à°¤à± à°¤à°¨à°¿à°–à±€ (Disaster Scan)` : `ðŸ“ ${locTitle}`);
+            const reply = generateConversationalReply(result, currentLang);
+            addMessage('assistant', reply.htmlText);
+            speak(reply.speechText, currentLang);
+            statusMsg.textContent = '';
+          } catch (e) {
+            hideThinking();
+            alert('Failed to fetch weather for current location.');
+            statusMsg.textContent = '';
+          }
+        },
+        (err) => {
+          statusMsg.textContent = '';
+          alert(`Location access denied: ${err.message}`);
+        }
+      );
+    }
+
+    langSelect.addEventListener('change', (e) => {
+      const selected = e.target.value;
+      setLanguage(selected, true);
+      const dict = I18N[selected];
+      speak(dict.welcomeSpeech, selected);
+    });
+
+    chatForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleUserQuery(queryInput.value);
+    });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+    let isListening = false;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = I18N[currentLang].code;
+
+      recognition.onstart = () => {
+        isListening = true;
+        micButton.classList.add('recording');
+        statusMsg.textContent = I18N[currentLang].micListening;
+      };
+
+      recognition.onresult = (event) => {
+        const text = event.results[0][0].transcript;
+        if (text) {
+          queryInput.value = text;
+          handleUserQuery(text);
+        }
+      };
+
+      recognition.onerror = (e) => {
+        console.warn('Speech recognition error:', e.error);
+        statusMsg.textContent = `${I18N[currentLang].micError} ${e.error}`;
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        micButton.classList.remove('recording');
+        if (statusMsg.textContent.startsWith('ðŸŽ¤')) {
+          statusMsg.textContent = '';
+        }
+      };
+
+      micButton.addEventListener('click', () => {
+        if (isListening) {
+          recognition.stop();
+        } else {
+          try {
+            recognition.lang = I18N[currentLang].code;
+            recognition.start();
+          } catch (e) {
+            console.error('Speech recognition start failed:', e);
+          }
+        }
+      });
+    } else {
+      micButton.addEventListener('click', () => {
+        alert('Voice input is not supported by your current browser. Please try Chrome, Edge, or Safari.');
+      });
+    }
+
+    setLanguage('te', true);
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  </script>
+</body>
+</html>
 
